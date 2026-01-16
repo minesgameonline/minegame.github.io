@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mines Adventure: Pro Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;700&display=swap');
+
+        :root {
+            --bg-main: #f0f9ff;
+            --card-bg: #ffffff;
+            --primary: #3b82f6;
+            --text: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .font-game { font-family: 'Bungee', cursive; }
+
+        .cartoon-card {
+            background: var(--card-bg);
+            border: 4px solid #1e293b;
+            box-shadow: 8px 8px 0px #1e293b;
+            border-radius: 24px;
+        }
+
+        .btn-cartoon {
+            background: var(--primary);
+            color: white;
+            border: 3px solid #1e293b;
+            box-shadow: 4px 4px 0px #1e293b;
+            transition: all 0.1s;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 12px;
+        }
+
+        .btn-cartoon:active {
+            box-shadow: 0px 0px 0px #1e293b;
+            transform: translate(2px, 2px);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active { opacity: 1; pointer-events: auto; }
+
+        .cell {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #1e293b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background: #e2e8f0;
+            font-size: 0.8rem;
+        }
+
+        .cell.revealed { background: #f8fafc; border-color: #cbd5e1; }
+        .cell.mine { background: #ef4444 !important; color: white !important; }
+
+        .title-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .theme-default { --bg-main: #f0f9ff; --card-bg: #ffffff; --primary: #3b82f6; }
+        .theme-ocean { --bg-main: #075985; --card-bg: #e0f2fe; --primary: #0ea5e9; }
+        .theme-og { --bg-main: #422006; --card-bg: #fefce8; --primary: #ca8a04; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+    <script>
+        let state = {
+            balance: parseInt(localStorage.getItem('m_bal')) || 500,
+            inventory: JSON.parse(localStorage.getItem('m_inv')) || ['default'],
+            titles: JSON.parse(localStorage.getItem('m_titles')) || ['Nováček'],
+            activeTitle: localStorage.getItem('m_active_title') || 'Nováček',
+            currentTheme: localStorage.getItem('m_theme') || 'default',
+            isAdmin: false,
+            board: [],
+            gameOver: false,
+            revealed: 0,
+            totalMines: 0,
+            players: [
+                { id: 1, name: "Pepa_Z_Depa", title: "Hráč", board: [], mines: 15, status: "Hraje", score: 0 },
+                { id: 2, name: "MinesMaster", title: "Sběratel", board: [], mines: 10, status: "Hraje", score: 0 },
+                { id: 3, name: "Hacker_1337", title: "Legenda", board: [], mines: 40, status: "Hraje", score: 0 }
+            ],
+            spectating: null
+        };
+
+        const SHOP_ITEMS = {
+            titles: [
+                { id: 'Sběratel', name: 'Sběratel', price: 500, color: 'bg-blue-100 text-blue-600' },
+                { id: 'Bohatýr', name: 'Bohatýr', price: 2000, color: 'bg-yellow-100 text-yellow-600' },
+                { id: 'Legenda', name: 'Legenda', price: 5000, color: 'bg-purple-100 text-purple-600' }
+            ]
+        };
+
+        const THEMES = {
+            default: { class: 'theme-default', mine: '💣', flag: '🚩' },
+            ocean: { class: 'theme-ocean', mine: '🐡', flag: '⚓' },
+            og: { class: 'theme-og', mine: '🏆', flag: '🏅' }
+        };
+
+        function save() {
+            localStorage.setItem('m_bal', state.balance);
+            localStorage.setItem('m_inv', JSON.stringify(state.inventory));
+            localStorage.setItem('m_titles', JSON.stringify(state.titles));
+            localStorage.setItem('m_active_title', state.activeTitle);
+            localStorage.setItem('m_theme', state.currentTheme);
+        }
+
+        function notify(title, message) {
+            const overlay = document.getElementById('popup-overlay');
+            document.getElementById('popup-title').innerText = title;
+            document.getElementById('popup-text').innerText = message;
+            overlay.classList.add('active');
+        }
+
+        function closePopup() { document.getElementById('popup-overlay').classList.remove('active'); }
+
+        function toggleAdmin() {
+            state.isAdmin = !state.isAdmin;
+            const overlay = document.getElementById('admin-overlay');
+            if(state.isAdmin) {
+                overlay.classList.add('active');
+                renderAdminPlayers();
+            } else {
+                overlay.classList.remove('active');
+                stopSpectating();
+            }
+        }
+
+        function initSimulatedPlayers() {
+            state.players.forEach(p => {
+                p.board = Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => ({ rev: false, mine: Math.random() < 0.15 })));
+            });
+            setInterval(() => {
+                state.players.forEach(p => {
+                    if(p.status !== "Hraje") return;
+                    let x = Math.floor(Math.random()*10), y = Math.floor(Math.random()*10);
+                    let cell = p.board[y][x];
+                    if(!cell.rev) {
+                        cell.rev = true;
+                        if(cell.mine) p.status = "Prohrál";
+                        if(state.spectating === p.id) renderSpectateBoard(p);
+                    }
+                });
+            }, 3000);
+        }
+
+        function startSpectating(id) {
+            const player = state.players.find(p => p.id === id);
+            state.spectating = id;
+            document.getElementById('spectate-area').classList.remove('hidden');
+            document.getElementById('spectate-name').innerText = player.name;
+            renderSpectateBoard(player);
+        }
+
+        function stopSpectating() {
+            state.spectating = null;
+            document.getElementById('spectate-area').classList.add('hidden');
+        }
+
+        function renderSpectateBoard(player) {
+            const grid = document.getElementById('spectate-grid');
+            grid.innerHTML = '';
+            player.board.forEach(row => row.forEach(c => {
+                const el = document.createElement('div');
+                el.className = `cell ${c.rev ? (c.mine ? 'mine' : 'revealed') : ''}`;
+                el.innerHTML = c.rev ? (c.mine ? '💥' : '✓') : '';
+                grid.appendChild(el);
+            }));
+        }
+
+        function renderAdminPlayers() {
+            const list = document.getElementById('admin-player-list');
+            list.innerHTML = '';
+            state.players.forEach(p => {
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl mb-2 border border-slate-700">
+                        <div class="text-left">
+                            <span class="title-badge bg-slate-700 text-slate-300 mr-2">${p.title}</span>
+                            <span class="font-bold text-white text-sm">${p.name}</span>
+                            <div class="text-[9px] ${p.status === 'Hraje' ? 'text-green-400' : 'text-red-400'}">${p.status}</div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="startSpectating(${p.id})" class="text-blue-400 hover:text-white"><i class="fas fa-eye"></i></button>
+                            <button onclick="adminAction('${p.name}', 'BAN')" class="text-red-500 hover:text-white"><i class="fas fa-ban"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function adminAction(name, action) {
+            notify("Admin Akce", `Hráč ${name} dostal ${action}.`);
+            state.players = state.players.filter(p => p.name !== name);
+            renderAdminPlayers();
+            if(state.spectating) stopSpectating();
+        }
+
+        /* ADMIN CHEATY */
+        function adminAddMoney() {
+            state.balance += 5000;
+            save();
+            updateUI();
+            notify("Admin Cheat", "Přidáno +5 000 mincí.");
+        }
+
+        function adminInstaWin() {
+            if(document.getElementById('game-screen').classList.contains('hidden')) {
+                notify("Chyba", "Musíš být v aktivní hře!");
+                return;
+            }
+            winGame();
+            toggleAdmin();
+        }
+
+        function adminRevealMines() {
+            if(document.getElementById('game-screen').classList.contains('hidden')) {
+                notify("Chyba", "Musíš být v aktivní hře!");
+                return;
+            }
+            state.board.forEach((row, y) => row.forEach((c, x) => {
+                if(c.mine) {
+                    const el = document.getElementById(`gc-${x}-${y}`);
+                    el.innerHTML = '💣';
+                    el.style.backgroundColor = '#fee2e2';
+                }
+            }));
+            toggleAdmin();
+            notify("Admin Cheat", "Miny byly odhaleny!");
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = state.balance;
+            document.getElementById('user-title').innerText = state.isAdmin ? "MINE ADMIN" : state.activeTitle;
+            document.getElementById('user-title').className = `title-badge ${state.isAdmin ? 'bg-red-500 text-white' : 'bg-yellow-400 text-yellow-900'}`;
+            document.body.className = THEMES[state.currentTheme].class;
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen-container').forEach(c => c.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'shop-screen') renderShop();
+            updateUI();
+        }
+
+        function renderShop() {
+            const cont = document.getElementById('shop-items');
+            cont.innerHTML = '<h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Tituly</h3>';
+            SHOP_ITEMS.titles.forEach(t => {
+                const owned = state.titles.includes(t.id);
+                cont.innerHTML += `
+                    <div class="flex justify-between items-center p-3 bg-white border-2 border-slate-100 rounded-xl mb-2">
+                        <span class="title-badge ${t.color}">${t.name}</span>
+                        ${owned ? '<span class="text-[10px] text-green-500 font-bold">VLASTNÍŠ</span>' : 
+                        `<button onclick="buyTitle('${t.id}', ${t.price})" class="text-[10px] bg-yellow-400 px-2 py-1 rounded font-bold">${t.price} $</button>`}
+                    </div>
+                `;
+            });
+        }
+
+        function buyTitle(id, price) {
+            if(state.balance >= price) {
+                state.balance -= price;
+                state.titles.push(id);
+                state.activeTitle = id;
+                save();
+                notify("Obchod", "Nový titul zakoupen!");
+                renderShop();
+                updateUI();
+            } else {
+                notify("Chyba", "Nedostatek peněz!");
+            }
+        }
+
+        function startGame(m) {
+            state.gameOver = false;
+            state.totalMines = m;
+            state.revealed = 0;
+            state.board = Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => ({ mine: Math.random() < (m/100), rev: false })));
+            
+            showScreen('game-screen');
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for(let y=0; y<10; y++) for(let x=0; x<10; x++) {
+                const el = document.createElement('div');
+                el.className = 'cell cursor-pointer hover:bg-slate-200';
+                el.id = `gc-${x}-${y}`;
+                el.onclick = () => {
+                    if(state.gameOver) return;
+                    let c = state.board[y][x];
+                    if(c.rev) return;
+                    c.rev = true;
+                    if(c.mine) {
+                        el.className = 'cell mine';
+                        el.innerHTML = '💥';
+                        state.gameOver = true;
+                        setTimeout(() => { notify("Prohra", "Šlápl jsi na minu!"); showScreen('main-menu'); }, 500);
+                    } else {
+                        el.className = 'cell revealed';
+                        el.innerHTML = '✓';
+                        state.revealed++;
+                        if(state.revealed >= 100 - state.totalMines) winGame();
+                    }
+                };
+                grid.appendChild(el);
+            }
+        }
+
+        function winGame() {
+            state.gameOver = true;
+            let reward = state.totalMines * 10;
+            state.balance += reward;
+            save();
+            notify("Vítězství", `Vyhrál jsi ${reward} mincí!`);
+            showScreen('main-menu');
+        }
+
+        window.addEventListener('keydown', (e) => { if(e.key.toLowerCase() === 'p') toggleAdmin(); });
+        window.onload = () => { initSimulatedPlayers(); updateUI(); };
+    </script>
+</head>
+<body class="theme-default">
+
+    <!-- ADMIN OVERLAY -->
+    <div id="admin-overlay" class="overlay">
+        <div class="cartoon-card p-6 max-w-5xl w-full bg-slate-900 text-white border-red-500 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-4">
+                    <h2 class="font-game text-2xl text-red-500"><i class="fas fa-shield-alt mr-2"></i> ADMIN CONSOLE</h2>
+                    <div class="flex gap-2">
+                        <button onclick="adminAddMoney()" class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+5k Money</button>
+                        <button onclick="adminInstaWin()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">Insta-Win</button>
+                        <button onclick="adminRevealMines()" class="bg-yellow-600 hover:bg-yellow-500 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">Reveal Mines</button>
+                    </div>
+                </div>
+                <button onclick="toggleAdmin()" class="text-slate-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 overflow-hidden">
+                <!-- Seznam hráčů -->
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">Live Aktivita Hráčů</h3>
+                    <div id="admin-player-list" class="overflow-y-auto flex-1 pr-2"></div>
+                    <div class="mt-4 pt-4 border-t border-slate-700">
+                        <input id="admin-msg-input" type="text" placeholder="Zpráva pro server..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs mb-2 focus:border-red-500 outline-none">
+                        <button onclick="notify('ADMIN OZNÁMENÍ', document.getElementById('admin-msg-input').value)" class="w-full btn-cartoon bg-red-600 text-xs py-2 shadow-none border-none">Odeslat Všem</button>
+                    </div>
+                </div>
+
+                <!-- Spectate Area -->
+                <div id="spectate-area" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col items-center hidden">
+                    <div class="flex justify-between w-full mb-3">
+                        <h3 class="text-xs font-bold text-blue-400 uppercase">Live: <span id="spectate-name"></span></h3>
+                        <button onclick="stopSpectating()" class="text-[10px] text-slate-400 hover:text-white uppercase font-bold">Zavřít</button>
+                    </div>
+                    <div id="spectate-grid" class="grid grid-cols-10 gap-1 bg-slate-900 p-2 rounded-lg border-2 border-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div id="popup-overlay" class="overlay">
+        <div class="cartoon-card p-8 max-w-xs w-full text-center">
+            <h2 id="popup-title" class="font-game text-xl mb-2"></h2>
+            <p id="popup-text" class="text-slate-600 text-sm mb-6"></p>
+            <button onclick="closePopup()" class="btn-cartoon bg-blue-500 w-full">ROZUMÍM</button>
+        </div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="screen-container w-full max-w-md p-10 cartoon-card text-center relative">
+        <div class="absolute -top-4 -right-4 bg-yellow-400 border-4 border-slate-900 px-4 py-2 rounded-xl font-game shadow-lg flex items-center gap-2">
+            <i class="fas fa-coins text-yellow-700"></i> <span id="balance">0</span>
+        </div>
+        <div class="mb-2">
+            <span id="user-title" class="title-badge">Nováček</span>
+        </div>
+        <h1 class="text-6xl text-blue-600 mb-2 font-game tracking-tighter">MINES</h1>
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-10 tracking-[0.3em]">Pro Edition</p>
+        
+        <div class="flex flex-col gap-4">
+            <button onclick="showScreen('setup-screen')" class="btn-cartoon py-4 text-xl bg-green-500">Hrát Teď</button>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="showScreen('shop-screen')" class="btn-cartoon bg-yellow-400 text-slate-900">Obchod</button>
+                <button onclick="notify('Turnaj', 'Vstoupil jsi do fronty na OG CUP! Výherce získá titul OG CHAMPION.')" class="btn-cartoon bg-red-500">OG Cup</button>
+            </div>
+            <p class="text-[9px] text-slate-400 mt-4 uppercase font-bold">Press [P] for Admin Control</p>
+        </div>
+    </div>
+
+    <!-- SHOP -->
+    <div id="shop-screen" class="hidden screen-container w-full max-w-md p-8 cartoon-card">
+        <h2 class="text-2xl font-game text-yellow-500 mb-4 text-center">Titul Shop</h2>
+        <div id="shop-items" class="space-y-2 h-64 overflow-y-auto pr-2"></div>
+        <button onclick="showScreen('main-menu')" class="btn-cartoon w-full mt-6 bg-slate-500">Zpět do menu</button>
+    </div>
+
+    <!-- SETUP -->
+    <div id="setup-screen" class="hidden screen-container w-full max-w-md p-8 cartoon-card text-center">
+        <h2 class="text-2xl font-game mb-6">Obtížnost</h2>
+        <div class="space-y-3">
+            <button onclick="startGame(10)" class="btn-cartoon w-full bg-green-400">Pohoda (10 min)</button>
+            <button onclick="startGame(25)" class="btn-cartoon w-full bg-orange-400">Výzva (25 min)</button>
+            <button onclick="startGame(45)" class="btn-cartoon w-full bg-red-500">Hardcore (45 min)</button>
+        </div>
+        <button onclick="showScreen('main-menu')" class="mt-6 text-slate-400 font-bold text-xs uppercase">Zpět</button>
+    </div>
+
+    <!-- GAME -->
+    <div id="game-screen" class="hidden screen-container cartoon-card p-6">
+        <div class="grid grid-cols-10 gap-1 bg-slate-900 p-2 rounded-xl border-4 border-slate-900 shadow-2xl" id="grid"></div>
+        <button onclick="showScreen('main-menu')" class="w-full mt-4 text-slate-400 text-[10px] font-bold uppercase hover:text-red-500 transition-colors">Vzdát se (Exit)</button>
+    </div>
+
+</body>
+</html>
