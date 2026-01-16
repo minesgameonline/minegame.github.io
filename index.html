@@ -12,7 +12,7 @@
         }
         
         /* THEMES */
-        body.theme-ostrava { --bg: #1a1a2e; --card: #16213e; --text: #ffffff; --primary: #e94560; --tile: #0f3460; }
+        body.theme-ostrava { --bg: #1a1a2e; --card: #16213e; --text: #ffffff; --primary: #e94560; --tile: #0f3460; --tile-rev: #1a1a2e; }
         body.theme-og { 
             --bg: #f39c12; --card: linear-gradient(135deg, #f1c40f, #e67e22); 
             --text: #fff; --primary: #2d3436; --tile: #f1c40f; --tile-rev: #fff;
@@ -21,8 +21,16 @@
         body.theme-og .cell.revealed { color: #2d3436 !important; }
 
         body { font-family: 'Nunito', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
-        .container { background: var(--card); padding: 25px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 650px; border: 6px solid rgba(255,255,255,0.3); position: relative; }
+        .container { background: var(--card); padding: 30px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 650px; border: 6px solid rgba(255,255,255,0.3); position: relative; }
         
+        /* LOGIN INPUT FIX */
+        .login-input {
+            padding: 15px 25px; border-radius: 20px; border: 2px solid var(--primary); 
+            width: 80%; font-size: 1rem; outline: none; transition: 0.3s;
+            background: #fff; color: #2d3436; margin-bottom: 20px;
+        }
+        .login-input:focus { box-shadow: 0 0 15px rgba(108, 92, 231, 0.3); }
+
         /* RANK STYLE */
         .rank-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Fredoka One'; font-size: 2rem; color: white; text-shadow: 2px 2px 0 rgba(0,0,0,0.2); box-shadow: 0 8px 15px rgba(0,0,0,0.2); margin: 0 auto; border: 4px solid rgba(255,255,255,0.5); }
         .rank-1-3 { background: linear-gradient(135deg, #a5afb6, #4b5d67); }
@@ -35,26 +43,31 @@
         .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 20px; font-family: 'Fredoka One'; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.2); margin: 5px; transition: 0.1s; }
         .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
         
-        #game-grid { display: grid; gap: 4px; margin: 15px auto; justify-content: center; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 15px; }
-        .cell { width: 32px; height: 32px; background: var(--tile); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; position: relative; }
-        .cell.revealed { background: var(--tile-rev); box-shadow: none; }
+        /* GRID & CELL FIX */
+        #game-grid { display: grid; gap: 6px; margin: 20px auto; justify-content: center; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 20px; }
+        .cell { 
+            width: 35px; height: 35px; background: var(--tile); border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; font-weight: 900; 
+            cursor: pointer; position: relative; transition: 0.2s;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .cell:hover { transform: scale(1.05); background: #ced6e0; }
+        .cell.revealed { background: var(--tile-rev); box-shadow: none; transform: none; }
 
         #popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(8px); }
         .popup { background: white; padding: 25px; border-radius: 40px; text-align: center; max-width: 350px; border: 8px solid var(--primary); color: #2d3436; }
         
         .screen { display: none; } .active { display: block; }
-        .stats-bar { background: rgba(0,0,0,0.1); padding: 10px; border-radius: 15px; display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 15px; }
+        .stats-bar { background: rgba(0,0,0,0.05); padding: 12px; border-radius: 15px; display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 15px; }
         
-        /* ADMIN PANEL EXTENDED */
-        #admin-panel { display: none; position: fixed; top: 10px; left: 10px; right: 10px; background: #2d3436; padding: 20px; border-radius: 25px; color: white; z-index: 10001; border: 2px solid #f1c40f; max-height: 80vh; overflow-y: auto; }
+        #admin-panel { display: none; position: fixed; top: 10px; left: 10px; right: 10px; background: #2d3436; padding: 20px; border-radius: 25px; color: white; z-index: 10001; border: 2px solid #f1c40f; max-height: 80vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .admin-user-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #444; font-size: 0.9rem; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.05); margin: 5px 0; padding: 10px; border-radius: 15px; }
     </style>
 </head>
 <body id="game-body">
 
     <div id="admin-panel">
-        <h3 style="color:#f1c40f; margin-top:0">🛠 Super Admin Panel (Honzik)</h3>
+        <h3 style="color:#f1c40f; margin-top:0">🛠 Admin Panel (Honzik)</h3>
         <div style="margin-bottom: 15px;">
             <button class="btn" style="background:#2ecc71" onclick="adminWin()">Instant Win ✅</button>
             <button class="btn" style="background:#f1c40f" onclick="adminAddMoney()">+1000 💰</button>
@@ -74,14 +87,15 @@
 
     <div class="container">
         <div id="screen-login" class="screen active">
-            <h1 style="font-family:'Fredoka One'">🎮 MineRoyale PRO</h1>
-            <input type="text" id="username" placeholder="Tvé jméno..." style="padding:15px; border-radius:20px; border:none; width:70%">
-            <br><button class="btn" style="margin-top:10px" onclick="handleLogin()">VSTOUPIT</button>
+            <h1 style="font-family:'Fredoka One'; font-size: 2.5rem; color: var(--primary);">🎮 MineRoyale</h1>
+            <p>Zadej své jméno a staň se legendou!</p>
+            <input type="text" id="username" class="login-input" placeholder="Tvé jméno...">
+            <br><button class="btn" style="width: 80%; font-size: 1.2rem;" onclick="handleLogin()">VSTOUPIT</button>
         </div>
 
         <div id="screen-menu" class="screen">
             <div class="rank-circle" id="rank-circle">1</div>
-            <p style="font-weight:900">ELO: <span id="m-elo">1000</span> | <span id="m-title">Nováček</span></p>
+            <p style="font-weight:900; margin: 15px 0;">ELO: <span id="m-elo">1000</span> | <span id="m-title">Nováček</span></p>
             <div class="stats-bar">💰 <span id="m-money">0</span></div>
             <button class="btn" style="width:45%" onclick="matchmaking()">⚔️ RANKED</button>
             <button class="btn" style="width:45%; background:#20bf6b" onclick="startMode('unranked')">🍃 FREE</button>
@@ -104,7 +118,7 @@
                 <p>Odměna: Ostrava Theme</p>
                 <button id="btn-ostrava" class="btn" style="background:#e94560; width:100%" onclick="startChamp('ostrava')">HRÁT</button>
             </div>
-            <input type="text" id="cupid" oninput="if(this.value==='ostravaCup'){document.getElementById('card-ostrava').style.display='block';this.value='';}" placeholder="CUPid kód...">
+            <input type="text" id="cupid" oninput="if(this.value==='ostravaCup'){document.getElementById('card-ostrava').style.display='block';this.value='';}" placeholder="CUPid kód..." class="login-input" style="width: 60%; margin-top: 10px;">
             <br><button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
         </div>
 
@@ -152,7 +166,7 @@
         function handleLogin() {
             const name = document.getElementById('username').value.trim();
             if(!name) return;
-            let db = JSON.parse(localStorage.getItem('ms_final_v4') || '{}');
+            let db = JSON.parse(localStorage.getItem('ms_final_v5') || '{}');
             user = db[name.toLowerCase()] || { name, money: 200, elo: 1000, title: "Nováček", inv: [], themes: ['default'], currentTheme: 'default', wonCups: [], banned: false };
             
             if(user.banned) {
@@ -175,9 +189,9 @@
         }
 
         function save() { 
-            let db = JSON.parse(localStorage.getItem('ms_final_v4')||'{}'); 
+            let db = JSON.parse(localStorage.getItem('ms_final_v5')||'{}'); 
             db[user.name.toLowerCase()]=user; 
-            localStorage.setItem('ms_final_v4', JSON.stringify(db)); 
+            localStorage.setItem('ms_final_v5', JSON.stringify(db)); 
         }
 
         function updateUI() {
@@ -208,7 +222,7 @@
         function startChamp(t) { game.mode = t==='og'?'og_cup':'ostrava_cup'; initGame(t==='og'?12:15, t==='og'?35:50); }
 
         function initGame(size, mines) {
-            const g = document.getElementById('game-grid'); g.innerHTML = ''; g.style.gridTemplateColumns = `repeat(${size}, 32px)`;
+            const g = document.getElementById('game-grid'); g.innerHTML = ''; g.style.gridTemplateColumns = `repeat(${size}, 35px)`;
             game.grid = []; game.active = true;
             document.getElementById('g-info').innerText = game.mode.toUpperCase();
             for(let r=0; r<size; r++) {
@@ -251,52 +265,32 @@
                 if(game.mode === 'ranked') user.elo += 50;
                 if(game.mode === 'og_cup') { user.money += 500; user.inv.push('OG CHAMPION'); user.themes.push('og'); user.wonCups.push('og'); }
                 if(game.mode === 'ostrava_cup') { user.themes.push('ostrava'); user.wonCups.push('ostrava'); }
-                showPopup('🏆', 'VÝHRA!', 'Elo připsáno!');
+                showPopup('🏆', 'VÝHRA!', 'Odměna připsána!');
             } else {
                 if(game.mode === 'ranked') user.elo = Math.max(0, user.elo - 30);
-                showPopup('💥', 'BUM!', 'Zkus to znovu.');
+                showPopup('💥', 'BUM!', 'Mina tě dostala.');
             }
             save(); updateUI(); switchScreen('screen-menu');
         }
 
-        // ADMIN FUNCTIONS
         function renderAdminList() {
-            let db = JSON.parse(localStorage.getItem('ms_final_v4')||'{}');
+            let db = JSON.parse(localStorage.getItem('ms_final_v5')||'{}');
             let list = document.getElementById('admin-user-list');
             list.innerHTML = '<h4>Správa uživatelů</h4>';
             Object.values(db).forEach(u => {
-                list.innerHTML += `
-                <div class="admin-user-row">
-                    <span><b>${u.name}</b> (ELO: ${u.elo})</span>
-                    <div>
-                        <button onclick="adminEditElo('${u.name}')">Elo</button>
-                        <button style="background:${u.banned?'#2ecc71':'#e74c3c'};color:white" onclick="adminToggleBan('${u.name}')">
-                            ${u.banned?'UNBAN':'BAN'}
-                        </button>
-                    </div>
-                </div>`;
+                list.innerHTML += `<div class="admin-user-row"><span><b>${u.name}</b> (${u.elo})</span><div><button onclick="adminEditElo('${u.name}')">Elo</button><button style="background:${u.banned?'#2ecc71':'#e74c3c'};color:white" onclick="adminToggleBan('${u.name}')">${u.banned?'UNBAN':'BAN'}</button></div></div>`;
             });
         }
         function adminEditElo(name) {
-            let newElo = prompt("Zadej nové ELO pro " + name, "1000");
-            if(newElo !== null) {
-                let db = JSON.parse(localStorage.getItem('ms_final_v4'));
-                db[name.toLowerCase()].elo = parseInt(newElo);
-                localStorage.setItem('ms_final_v4', JSON.stringify(db));
-                if(user.name.toLowerCase() === name.toLowerCase()) { user.elo = parseInt(newElo); updateUI(); }
-                renderAdminList();
-            }
+            let n = prompt("Nové ELO:", "1000");
+            if(n) { let db = JSON.parse(localStorage.getItem('ms_final_v5')); db[name.toLowerCase()].elo = parseInt(n); localStorage.setItem('ms_final_v5', JSON.stringify(db)); if(user.name.toLowerCase()===name.toLowerCase()){user.elo=parseInt(n);updateUI();} renderAdminList(); }
         }
         function adminToggleBan(name) {
-            let db = JSON.parse(localStorage.getItem('ms_final_v4'));
-            db[name.toLowerCase()].banned = !db[name.toLowerCase()].banned;
-            localStorage.setItem('ms_final_v4', JSON.stringify(db));
-            renderAdminList();
+            let db = JSON.parse(localStorage.getItem('ms_final_v5')); db[name.toLowerCase()].banned = !db[name.toLowerCase()].banned; localStorage.setItem('ms_final_v5', JSON.stringify(db)); renderAdminList();
         }
         function adminWin() { if(game.active) endGame(true); }
         function adminAddMoney() { user.money += 1000; save(); updateUI(); }
 
-        // SHOP & INV
         function renderShop() {
             let s = document.getElementById('shop-list'); s.innerHTML = '';
             ITEMS.forEach(i => {
@@ -304,10 +298,8 @@
                 s.innerHTML += `<div class="item-row"><span>${i.name} (${i.price}💰)</span><button class="btn" ${owned?'disabled':''} onclick="buy('${i.id}')">${owned?'Máš':'Koupit'}</button></div>`;
             });
         }
-        function buy(id) {
-            let i = ITEMS.find(x=>x.id===id);
-            if(user.money >= i.price) { user.money -= i.price; if(i.type==='title') user.inv.push(i.name); else user.themes.push(i.name); play('ping'); save(); updateUI(); renderShop(); }
-        }
+        function buy(id) { let i = ITEMS.find(x=>x.id===id); if(user.money >= i.price) { user.money -= i.price; if(i.type==='title') user.inv.push(i.name); else user.themes.push(i.name); play('ping'); save(); updateUI(); renderShop(); } }
+        
         function renderInv() {
             let v = document.getElementById('inv-list'); v.innerHTML = '<h3>Tituly</h3>';
             user.inv.forEach(t => v.innerHTML += `<div class="item-row"><span>${t}</span><button class="btn" onclick="user.title='${t}';save();updateUI()">Dát</button></div>`);
@@ -315,8 +307,9 @@
             user.themes.forEach(th => v.innerHTML += `<div class="item-row"><span>${th.toUpperCase()}</span><button class="btn" onclick="applyTheme('${th}')">Dát</button></div>`);
         }
         function applyTheme(t) { document.body.className = t==='default'?'':'theme-'+t; user.currentTheme=t; save(); }
+        
         function renderLead() {
-            let db = Object.values(JSON.parse(localStorage.getItem('ms_final_v4')||'{}')).sort((a,b)=>b.elo-a.elo);
+            let db = Object.values(JSON.parse(localStorage.getItem('ms_final_v5')||'{}')).sort((a,b)=>b.elo-a.elo);
             document.getElementById('lead-list').innerHTML = db.slice(0,10).map((u,i)=>`<div class="item-row">${i+1}. ${u.name} (ELO: ${u.elo})</div>`).join('');
         }
         function switchScreen(s) { play('click'); document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); document.getElementById(s).classList.add('active'); if(s==='screen-shop') renderShop(); if(s==='screen-inv') renderInv(); }
