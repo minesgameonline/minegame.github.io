@@ -3,456 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Cartoon Royale</title>
+    <title>Minesweeper Cartoon Royale 🌈</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #e0f2f1;
-            --card: #ffffff;
-            --primary: #6c5ce7;
-            --secondary: #fbc531;
-            --accent: #ff7675;
-            --success: #00b894;
-            --text: #2d3436;
-            --admin-color: #e67e22;
+            --bg: #e0f2f1; --card: #ffffff; --primary: #6c5ce7; --secondary: #fbc531;
+            --accent: #ff7675; --success: #00b894; --text: #2d3436; --admin-color: #e67e22;
+            --cup-color: #ff4757; --ostrava: #2f3542;
+        }
+        
+        /* THEMES */
+        body.theme-ostrava { --bg: #2f3542; --card: #57606f; --text: #ffffff; --primary: #70a1ff; }
+
+        body { font-family: 'Nunito', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; transition: background 0.5s; }
+        
+        .container { 
+            background: var(--card); padding: 25px; border-radius: 40px; 
+            box-shadow: 0 15px 0 rgba(0,0,0,0.1), 0 25px 50px rgba(0,0,0,0.15); 
+            text-align: center; width: 95%; max-width: 550px; border: 6px solid rgba(255,255,255,0.5);
+            position: relative; overflow: hidden;
         }
 
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+        /* DECORATIONS */
+        .decoration { position: absolute; font-size: 2rem; opacity: 0.2; z-index: 0; pointer-events: none; }
+
+        .btn { 
+            background: var(--primary); color: white; border: none; padding: 15px 25px; 
+            border-radius: 25px; font-size: 1.1rem; font-family: 'Fredoka One', cursive; 
+            cursor: pointer; box-shadow: 0 6px 0 rgba(0,0,0,0.2); transition: all 0.1s; 
+            margin: 8px; display: inline-block; position: relative; z-index: 1;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+        
+        .btn-ranked { background: #4834d4; }
+        .btn-unranked { background: #20bf6b; }
+        .btn-cup { background: var(--cup-color); width: 90%; font-size: 1.3rem; }
+        .btn-ostrava { background: #5352ed; border: 2px solid white; display: none; }
+
+        .stats-bar { 
+            background: rgba(0,0,0,0.05); padding: 12px; border-radius: 25px; 
+            margin-bottom: 15px; display: flex; justify-content: space-around; 
+            font-weight: bold; border: 2px dashed rgba(0,0,0,0.1); 
         }
 
-        h1, h2, h3 { font-family: 'Fredoka One', cursive; color: var(--primary); margin-bottom: 10px; }
-
-        /* --- CARTOON UI ELEMENTS --- */
-        .container {
-            background: var(--card);
-            padding: 30px;
-            border-radius: 30px;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 500px;
-            border: 4px solid #fff;
-            position: relative;
+        input { 
+            padding: 12px; border-radius: 20px; border: 3px solid #dfe6e9; 
+            font-size: 1rem; width: 70%; margin: 10px 0; text-align: center; font-family: inherit;
         }
 
-        input[type="text"] {
-            padding: 15px;
-            border-radius: 15px;
-            border: 3px solid #dfe6e9;
-            font-size: 1.1rem;
-            width: 80%;
-            margin-bottom: 20px;
-            outline: none;
-            text-align: center;
+        #game-grid { display: grid; gap: 6px; margin: 15px auto; justify-content: center; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 20px; }
+        .cell { 
+            width: 35px; height: 35px; background: #ced4da; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; font-weight: 900; 
+            cursor: pointer; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1); font-size: 1.2rem;
         }
+        .cell.revealed { background: white; box-shadow: none; color: var(--text); }
 
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 20px;
-            font-size: 1.1rem;
-            font-family: 'Fredoka One', cursive;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #4834d4;
-            transition: all 0.1s;
-            margin: 8px;
-            display: inline-block;
+        /* POPUP */
+        #popup-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; 
+            align-items: center; z-index: 5000; backdrop-filter: blur(8px); 
         }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #4834d4; }
-        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #4834d4; }
-        .btn-small { padding: 8px 15px; font-size: 0.9rem; box-shadow: 0 4px 0 #4834d4; }
-        .btn-shop { background: var(--secondary); box-shadow: 0 6px 0 #f1c40f; }
-
-        /* --- GRID STYLE --- */
-        #game-grid {
-            display: grid;
-            gap: 6px;
-            margin: 20px auto;
-            background: #dfe6e9;
-            padding: 10px;
-            border-radius: 20px;
-            justify-content: center;
+        .popup { 
+            background: white; padding: 40px; border-radius: 40px; text-align: center; 
+            max-width: 400px; border: 10px solid var(--primary); color: #2d3436;
+            transform: scale(0.5); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        .cell {
-            width: 35px;
-            height: 35px;
-            background: #b2bec3;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1);
-            transition: background 0.2s;
-        }
-
-        .cell.revealed { background: #fff; box-shadow: none; cursor: default; }
-        .cell.mine { background: var(--accent); }
-        .cell.flag { background: var(--secondary); }
-
-        /* --- POPUP SYSTEM --- */
-        #popup-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(5px);
-        }
-
-        .popup {
-            background: white;
-            padding: 40px;
-            border-radius: 40px;
-            text-align: center;
-            max-width: 400px;
-            width: 80%;
-            transform: scale(0.5);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 8px solid var(--primary);
-        }
-
         .popup.show { transform: scale(1); }
-        .popup-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
 
-        /* --- STATS PANEL --- */
-        .stats-bar {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-around;
-            font-weight: bold;
-            border: 2px solid #eee;
+        #admin-panel { 
+            display: none; position: fixed; top: 10px; left: 10px; right: 10px; 
+            background: var(--admin-color); padding: 20px; border-radius: 30px; 
+            color: white; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
         }
 
-        #admin-panel {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--admin-color);
-            padding: 15px;
-            border-radius: 20px;
-            color: white;
-            z-index: 100;
-        }
-
-        .screen { display: none; }
+        .screen { display: none; position: relative; z-index: 1; }
         .active { display: block; }
     </style>
 </head>
-<body>
+<body id="game-body">
 
     <div id="popup-overlay">
         <div class="popup" id="main-popup">
-            <span class="popup-icon" id="popup-icon">🎉</span>
-            <h2 id="popup-title">Gratulujeme!</h2>
-            <p id="popup-text">Něco se stalo!</p>
-            <button class="btn" onclick="closePopup()">Super!</button>
-        </div>
-    </div>
-
-    <div class="container">
-        <div id="screen-login" class="screen active">
-            <h1>🎮 MineRoyale</h1>
-            <p>Vítej! Zadej své jméno pro načtení postupu.</p>
-            <input type="text" id="username" placeholder="Tvé unikátní jméno">
-            <br>
-            <button class="btn" onclick="handleLogin()">Hrát!</button>
-        </div>
-
-        <div id="screen-menu" class="screen">
-            <div id="player-info">
-                <h2 id="display-name">Jméno</h2>
-                <div class="stats-bar">
-                    <span>💰 <span id="display-money">0</span></span>
-                    <span>🏆 ELO <span id="display-elo">1000</span></span>
-                </div>
-                <p id="display-title" style="color: var(--primary); font-weight: bold;"></p>
-            </div>
-            
-            <div style="margin: 20px 0;">
-                <button class="btn btn-small" onclick="initGame(8, 10)">Lehká</button>
-                <button class="btn btn-small" onclick="initGame(12, 25)">Střední</button>
-                <button class="btn btn-small" onclick="initGame(15, 45)">Těžká</button>
-            </div>
-            
-            <button class="btn btn-shop" onclick="switchScreen('screen-shop')">🛒 Obchod</button>
-            <button class="btn btn-shop" onclick="renderLeaderboard(); switchScreen('screen-leaderboard')">🏅 Leaderboard</button>
-        </div>
-
-        <div id="screen-game" class="screen">
-            <div class="stats-bar">
-                <span id="game-status">Hraješ...</span>
-                <span>⏱️ <span id="timer">0</span>s</span>
-            </div>
-            <div id="game-grid"></div>
-            <button class="btn btn-small" style="background:#b2bec3; box-shadow: 0 4px 0 #636e72;" onclick="switchScreen('screen-menu')">Zpět do menu</button>
-        </div>
-
-        <div id="screen-shop" class="screen">
-            <h2>🛒 Obchod s tituly</h2>
-            <div id="shop-list"></div>
-            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
-        </div>
-
-        <div id="screen-leaderboard" class="screen">
-            <h2>🏅 Síň slávy</h2>
-            <div id="leaderboard-content" style="text-align: left; max-height: 300px; overflow-y: auto;"></div>
-            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
+            <div id="popup-icon" style="font-size: 4rem; margin-bottom: 10px;"></div>
+            <h2 id="popup-title" style="font-family:'Fredoka One';"></h2>
+            <p id="popup-text" style="font-size: 1.1rem;"></p>
+            <button class="btn" onclick="closePopup()">Rozumím! ✌️</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <h3>🛠 Admin: <span id="admin-target"></span></h3>
-        <button class="btn btn-small" onclick="adminAction('win')">Instant Win</button>
-        <button class="btn btn-small" onclick="adminAction('money')">+1000 💰</button>
-        <button class="btn btn-small" style="background: #c0392b;" onclick="adminAction('ban')">BAN</button>
+        <h3>🛠 ADMIN CONTROL (Honzik)</h3>
+        <div id="admin-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
+        <input type="text" id="ban-input" placeholder="Jméno k zabanování">
+        <button class="btn btn-unranked" onclick="manualBan()">BAN</button>
+        <button class="btn" onclick="document.getElementById('admin-panel').style.display='none'">Zavřít [P]</button>
+    </div>
+
+    <div class="container">
+        <div class="decoration" style="top:10px; left:10px;">💣</div>
+        <div class="decoration" style="bottom:10px; right:10px;">💎</div>
+
+        <div id="screen-login" class="screen active">
+            <h1 style="font-size: 3rem; margin: 0;">🌈 MineRoyale</h1>
+            <p>Zadej jméno a ukaž, co v tobě je!</p>
+            <input type="text" id="username" placeholder="Tvé jméno...">
+            <br>
+            <button class="btn btn-ranked" onclick="handleLogin()">VSTOUPIT DO HRY 🚀</button>
+        </div>
+
+        <div id="screen-menu" class="screen">
+            <div class="stats-bar">
+                <div style="color:#f1c40f">💰 <span id="m-money">0</span></div>
+                <div style="color:#6c5ce7">🏆 ELO <span id="m-elo">0</span></div>
+            </div>
+            <h2 id="m-name" style="margin:0;">Jméno</h2>
+            <p id="m-title" style="color:var(--primary); margin-top:0;">Nováček</p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; margin: 20px 0;">
+                <button class="btn btn-ranked" onclick="startMode('ranked')">⚔️ RANKED</button>
+                <button class="btn btn-unranked" onclick="startMode('unranked')">🍃 FREE PLAY</button>
+            </div>
+            
+            <button class="btn btn-cup" onclick="switchScreen('screen-championship')">🏆 CHAMPIONSHIP 🏆</button>
+            
+            <div style="display:flex; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-shop" onclick="switchScreen('screen-shop')">🛒 SHOP</button>
+                <button class="btn btn-shop" onclick="switchScreen('screen-inv')">🎒 INV</button>
+                <button class="btn btn-shop" onclick="renderLead(); switchScreen('screen-lead')">🏅 LEAD</button>
+            </div>
+        </div>
+
+        <div id="screen-championship" class="screen">
+            <div class="decoration" style="top:0; right:0; opacity: 0.5;">👑</div>
+            <h2>🏆 The Championship Hall</h2>
+            <div class="stats-bar">Pokusy na OG Cup: <span id="c-attempts">0</span>/5</div>
+            <button class="btn btn-cup" onclick="startChamp('og')">🔥 START OG CUP</button>
+            
+            <button id="ostrava-btn" class="btn btn-cup btn-ostrava" onclick="startChamp('ostrava')">🏙️ OSTRAVA CUP</button>
+
+            <div style="margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 10px;">
+                <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 0;">Didn't find the cup you expected to be here?</p>
+                <p style="font-size: 0.9rem; font-weight: bold; margin-top: 5px;">Type CUPid here: 👇</p>
+                <input type="text" id="cupid-input" oninput="checkCupid()" placeholder="Kód...">
+            </div>
+            <button class="btn btn-unranked" onclick="switchScreen('screen-menu')">Zpět</button>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div class="stats-bar">
+                <span id="g-info">Mód</span>
+                <span>⏱️ <span id="timer">0</span>s</span>
+            </div>
+            <div id="game-grid"></div>
+            <button class="btn btn-unranked" onclick="switchScreen('screen-menu')">Vzdát se</button>
+        </div>
+
+        <div id="screen-inv" class="screen">
+            <h2>🎒 Inventář & Themes</h2>
+            <div id="inv-list" style="text-align: left;"></div>
+            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
+        </div>
+
+        <div id="screen-shop" class="screen"><h2>🛒 Obchod</h2><div id="shop-list"></div><button class="btn" onclick="switchScreen('screen-menu')">Zpět</button></div>
+        <div id="screen-lead" class="screen"><h2>🏅 Leaderboard</h2><div id="lead-list"></div><button class="btn" onclick="switchScreen('screen-menu')">Zpět</button></div>
     </div>
 
     <script>
-        // --- DATA & POPUP SYSTEM ---
-        let currentUser = null;
-        const TITLES = [
-            { id: 1, name: "Mine Master", price: 200 },
-            { id: 2, name: "OG Legend", price: 1000 },
-            { id: 3, name: "Explosion Expert", price: 500 }
-        ];
+        let user = null;
+        let game = { active: false, mode: '', grid: [] };
+        const TITLES = [{n: "Minesweeper God", p: 1500}, {n: "Rich Kid", p: 3000}];
 
-        function showPopup(icon, title, text) {
-            document.getElementById('popup-icon').innerText = icon;
-            document.getElementById('popup-title').innerText = title;
-            document.getElementById('popup-text').innerText = text;
-            const overlay = document.getElementById('popup-overlay');
-            overlay.style.display = 'flex';
+        function showPopup(i, t, tx) {
+            document.getElementById('popup-icon').innerText = i;
+            document.getElementById('popup-title').innerText = t;
+            document.getElementById('popup-text').innerText = tx;
+            document.getElementById('popup-overlay').style.display = 'flex';
             setTimeout(() => document.getElementById('main-popup').classList.add('show'), 10);
         }
-
-        function closePopup() {
+        function closePopup() { 
             document.getElementById('main-popup').classList.remove('show');
             setTimeout(() => document.getElementById('popup-overlay').style.display = 'none', 300);
         }
 
-        function getAllUsers() {
-            return JSON.parse(localStorage.getItem('minesweeper_users') || '{}');
-        }
-
-        function saveUser(userData) {
-            let users = getAllUsers();
-            users[userData.name.toLowerCase()] = userData;
-            localStorage.setItem('minesweeper_users', JSON.stringify(users));
-        }
-
         function handleLogin() {
             const name = document.getElementById('username').value.trim();
-            if (!name) return showPopup('❌', 'Chyba!', 'Musíš zadat své jméno!');
-
-            let users = getAllUsers();
-            let key = name.toLowerCase();
-
-            if (users[key]) {
-                currentUser = users[key];
-            } else {
-                currentUser = { name: name, money: 0, elo: 1000, title: "Nováček", isBanned: false };
+            if(!name) return;
+            let db = JSON.parse(localStorage.getItem('ms_royale_db') || '{}');
+            user = db[name.toLowerCase()] || { 
+                name, money: 200, elo: 1000, title: "Nováček", 
+                inv: [], themes: [], attempts: 5, banned: false, currentTheme: 'default'
+            };
+            if(user.banned) return showPopup('🔨', 'ZÁKAZ!', 'Tvůj účet je zabanován.');
+            applyTheme(user.currentTheme);
+            save(); updateUI(); switchScreen('screen-menu');
+            if(name === "HonzikAdmin") {
+                window.onkeydown = (e) => { if(e.key.toLowerCase() === 'p') {
+                    const p = document.getElementById('admin-panel'); p.style.display = p.style.display === 'block' ? 'none' : 'block';
+                }};
+                renderAdmin();
             }
+        }
 
-            if (currentUser.isBanned) {
-                showPopup('🔨', 'BAN!', 'Tvůj účet byl zablokován adminem.');
-                return;
-            }
-
-            updateUI();
-            switchScreen('screen-menu');
-            saveUser(currentUser);
-            showPopup('👋', 'Ahoj ' + currentUser.name, 'Vítej zpět ve hře!');
+        function save() {
+            let db = JSON.parse(localStorage.getItem('ms_royale_db') || '{}');
+            db[user.name.toLowerCase()] = user;
+            localStorage.setItem('ms_royale_db', JSON.stringify(db));
         }
 
         function updateUI() {
-            document.getElementById('display-name').innerText = currentUser.name;
-            document.getElementById('display-money').innerText = currentUser.money;
-            document.getElementById('display-elo').innerText = currentUser.elo;
-            document.getElementById('display-title').innerText = currentUser.title;
-            
-            if (currentUser.name === "HonzikAdmin") {
-                document.getElementById('admin-target').innerText = currentUser.name;
-                window.onkeydown = (e) => {
-                    if (e.key.toLowerCase() === 'p') {
-                        const p = document.getElementById('admin-panel');
-                        p.style.display = p.style.display === 'block' ? 'none' : 'block';
-                    }
-                };
+            document.getElementById('m-name').innerText = user.name;
+            document.getElementById('m-money').innerText = user.money;
+            document.getElementById('m-elo').innerText = user.elo;
+            document.getElementById('m-title').innerText = user.title;
+            document.getElementById('c-attempts').innerText = user.attempts;
+        }
+
+        function switchScreen(s) {
+            document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+            document.getElementById(s).classList.add('active');
+            if(s === 'screen-inv') renderInv();
+            if(s === 'screen-shop') renderShop();
+        }
+
+        function checkCupid() {
+            const val = document.getElementById('cupid-input').value;
+            if(val === "ostravaCup") {
+                document.getElementById('ostrava-btn').style.display = 'inline-block';
+                showPopup('🏙️', 'Bum!', 'Aktivoval jsi tajný cup! Jak o něm víš?');
+                document.getElementById('cupid-input').value = "";
             }
         }
 
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if (id === 'screen-shop') renderShop();
-        }
+        function startMode(m) { game.mode = m; initGame(10, 15); }
 
-        // --- GAME LOGIC ---
-        let gridData = [];
-        let gameActive = false;
+        function startChamp(type) {
+            if(type === 'og') {
+                if(user.attempts <= 0) return showPopup('❌', 'Konec', 'Už nemáš pokusy!');
+                user.attempts--; save(); updateUI();
+                game.mode = 'og_cup'; initGame(16, 50);
+            } else {
+                game.mode = 'ostrava_cup'; initGame(18, 70);
+            }
+        }
 
         function initGame(size, mines) {
-            gameActive = true;
-            gridData = [];
-            const gridEl = document.getElementById('game-grid');
-            gridEl.style.gridTemplateColumns = `repeat(${size}, 35px)`;
-            gridEl.innerHTML = '';
+            const g = document.getElementById('game-grid'); g.innerHTML = '';
+            g.style.gridTemplateColumns = `repeat(${size}, 35px)`;
+            game.grid = []; game.active = true;
+            document.getElementById('g-info').innerText = game.mode.toUpperCase();
             
             for(let r=0; r<size; r++) {
-                gridData[r] = [];
+                game.grid[r] = [];
                 for(let c=0; c<size; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.onclick = () => reveal(r, c);
-                    cell.oncontextmenu = (e) => { e.preventDefault(); flag(r, c); };
-                    gridEl.appendChild(cell);
-                    gridData[r][c] = { mine: false, revealed: false, flagged: false, count: 0, el: cell };
+                    const el = document.createElement('div'); el.className = 'cell';
+                    el.onclick = () => reveal(r,c);
+                    el.oncontextmenu = (e) => { e.preventDefault(); flag(r,c); };
+                    g.appendChild(el);
+                    game.grid[r][c] = { mine: false, rev: false, fl: false, el: el };
                 }
             }
-
-            let mCount = 0;
-            while(mCount < mines) {
-                let r = Math.floor(Math.random()*size);
-                let c = Math.floor(Math.random()*size);
-                if(!gridData[r][c].mine) { gridData[r][c].mine = true; mCount++; }
-            }
-            
-            for(let r=0; r<size; r++) {
-                for(let c=0; c<size; c++) {
-                    if(gridData[r][c].mine) continue;
-                    let count = 0;
-                    for(let i=-1; i<=1; i++) {
-                        for(let j=-1; j<=1; j++) { if(gridData[r+i]?.[c+j]?.mine) count++; }
-                    }
-                    gridData[r][c].count = count;
-                }
+            let mc = 0;
+            while(mc < mines) {
+                let r = Math.floor(Math.random()*size), c = Math.floor(Math.random()*size);
+                if(!game.grid[r][c].mine) { game.grid[r][c].mine = true; mc++; }
             }
             switchScreen('screen-game');
         }
 
-        function reveal(r, c) {
-            if(!gameActive || gridData[r][c].revealed || gridData[r][c].flagged) return;
-            const cell = gridData[r][c];
-            cell.revealed = true;
-            cell.el.classList.add('revealed');
-
-            if(cell.mine) {
-                cell.el.innerText = '💥';
-                endGame(false);
-                return;
+        function reveal(r,c) {
+            if(!game.active || game.grid[r][c].rev || game.grid[r][c].fl) return;
+            let tile = game.grid[r][c]; tile.rev = true; tile.el.classList.add('revealed');
+            if(tile.mine) return endGame(false);
+            
+            let count = 0;
+            for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]?.mine) count++;
+            if(count > 0) tile.el.innerText = count;
+            else {
+                for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]) reveal(r+i, c+j);
             }
-
-            if(cell.count > 0) {
-                cell.el.innerText = cell.count;
-                cell.el.style.color = ['','#4a90e2','#00b894','#ff7675','#6c5ce7','#e67e22'][cell.count] || 'black';
-            } else {
-                for(let i=-1; i<=1; i++) {
-                    for(let j=-1; j<=1; j++) { if(gridData[r+i]?.[c+j]) reveal(r+i, c+j); }
-                }
-            }
-            checkWin();
+            if(game.grid.flat().filter(x => !x.mine && !x.rev).length === 0) endGame(true);
         }
 
-        function flag(r, c) {
-            if(!gameActive || gridData[r][c].revealed) return;
-            gridData[r][c].flagged = !gridData[r][c].flagged;
-            gridData[r][c].el.innerText = gridData[r][c].flagged ? '🚩' : '';
-        }
-
-        function checkWin() {
-            const allClean = gridData.flat().every(c => c.mine || c.revealed);
-            if(allClean) endGame(true);
+        function flag(r,c) {
+            if(!game.active || game.grid[r][c].rev) return;
+            game.grid[r][c].fl = !game.grid[r][c].fl;
+            game.grid[r][c].el.innerText = game.grid[r][c].fl ? '🚩' : '';
         }
 
         function endGame(win) {
-            gameActive = false;
+            game.active = false;
             if(win) {
-                currentUser.money += 100;
-                currentUser.elo += 30;
-                showPopup('🏆', 'Vítězství!', 'Vyhrál jsi OG Cup a získal 100 💰 a 30 ELO!');
+                user.money += 200;
+                if(game.mode === 'ranked') user.elo += 40;
+                if(game.mode === 'og_cup') {
+                    if(!user.inv.includes('OG CHAMPION')) user.inv.push('OG CHAMPION');
+                    showPopup('🏆', 'OG VÍTĚZ', 'Získal si titul OG CHAMPION!');
+                }
+                if(game.mode === 'ostrava_cup') {
+                    if(!user.inv.includes('Personally met the owner')) user.inv.push('Personally met the owner');
+                    if(!user.themes.includes('ostrava')) user.themes.push('ostrava');
+                    showPopup('🌆', 'MISTŘI OSTRAVY', 'Vyhrál jsi! Máš nové Theme a titul!');
+                }
             } else {
-                currentUser.elo = Math.max(0, currentUser.elo - 20);
-                showPopup('🧨', 'Bum!', 'Mina tě dostala. Ztratil jsi 20 ELO.');
+                if(game.mode === 'ranked') user.elo = Math.max(0, user.elo - 25);
+                showPopup('💥', 'BUM!', 'Mina tě dostala!');
             }
-            saveUser(currentUser);
-            updateUI();
-            switchScreen('screen-menu');
+            save(); updateUI(); switchScreen('screen-menu');
         }
 
-        // --- SHOP & LEADERBOARD ---
-        function renderShop() {
-            const list = document.getElementById('shop-list');
-            list.innerHTML = '';
-            TITLES.forEach(t => {
-                const owns = currentUser.title === t.name;
-                list.innerHTML += `
-                    <div class="stats-bar" style="justify-content: space-between; align-items: center;">
-                        <span>${t.name} (${t.price} 💰)</span>
-                        <button class="btn btn-small" ${owns ? 'disabled' : ''} onclick="buyTitle('${t.name}', ${t.price})">
-                            ${owns ? 'Vlastníš' : 'Koupit'}
-                        </button>
-                    </div>
-                `;
+        function renderInv() {
+            const list = document.getElementById('inv-list');
+            list.innerHTML = '<h3>Tituly:</h3>';
+            user.inv.forEach(i => {
+                list.innerHTML += `<div class="stats-bar"><span>${i}</span> <button class="btn btn-unranked" onclick="user.title='${i}'; save(); updateUI();">Nasadit</button></div>`;
+            });
+            list.innerHTML += '<h3>Themes:</h3>';
+            list.innerHTML += `<div class="stats-bar"><span>Default</span> <button class="btn btn-unranked" onclick="applyTheme('default')">Aktivovat</button></div>`;
+            user.themes.forEach(t => {
+                list.innerHTML += `<div class="stats-bar"><span>${t.toUpperCase()}</span> <button class="btn btn-unranked" onclick="applyTheme('${t}')">Aktivovat</button></div>`;
             });
         }
 
-        function buyTitle(name, price) {
-            if(currentUser.money >= price) {
-                currentUser.money -= price;
-                currentUser.title = name;
-                saveUser(currentUser);
-                updateUI();
-                renderShop();
-                showPopup('🛍️', 'Nákup úspěšný!', `Nyní máš titul: ${name}`);
-            } else showPopup('❌', 'Chudý hráč!', 'Na tohle nemáš dost mincí.');
+        function applyTheme(t) {
+            document.getElementById('game-body').className = (t === 'default') ? '' : 'theme-' + t;
+            user.currentTheme = t; save();
         }
 
-        function renderLeaderboard() {
-            const users = Object.values(getAllUsers()).sort((a,b) => b.elo - a.elo);
-            const cont = document.getElementById('leaderboard-content');
-            cont.innerHTML = users.map((u, i) => `
-                <div class="stats-bar">
-                    <span>${i+1}. ${u.name}</span>
-                    <span style="color:var(--primary)">${u.elo} ELO</span>
+        function renderShop() {
+            const s = document.getElementById('shop-list'); s.innerHTML = '';
+            TITLES.forEach(t => {
+                s.innerHTML += `<div class="stats-bar"><span>${t.n} (${t.p}💰)</span><button class="btn btn-unranked" onclick="buy('${t.n}', ${t.p})">Koupit</button></div>`;
+            });
+        }
+        function buy(n,p) {
+            if(user.money >= p && !user.inv.includes(n)) { user.money -= p; user.inv.push(n); save(); updateUI(); renderShop(); }
+            else showPopup('❌', 'Chyba', 'Nedostatek peněz nebo již koupeno.');
+        }
+
+        function renderLead() {
+            let db = Object.values(JSON.parse(localStorage.getItem('ms_royale_db') || '{}')).sort((a,b)=>b.elo - a.elo);
+            document.getElementById('lead-list').innerHTML = db.map((u,i) => `<div class="stats-bar"><span>${i+1}. ${u.name}</span><span>${u.elo} ELO</span></div>`).join('');
+        }
+
+        function renderAdmin() {
+            let db = Object.values(JSON.parse(localStorage.getItem('ms_royale_db') || '{}'));
+            document.getElementById('admin-list').innerHTML = db.map(p => `
+                <div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.1); padding:5px; margin:2px;">
+                    <span>${p.name}</span> <button onclick="banHrac('${p.name}')">BAN</button>
                 </div>
             `).join('');
         }
-
-        function adminAction(type) {
-            if(type === 'win') endGame(true);
-            if(type === 'money') { 
-                currentUser.money += 1000; 
-                updateUI(); saveUser(currentUser); 
-                showPopup('💰', 'Admin Cheat', 'Přidal jsi si 1000 mincí.');
-            }
-            if(type === 'ban') { 
-                currentUser.isBanned = true; 
-                saveUser(currentUser); 
-                showPopup('🔨', 'Zabanován!', 'Dostal jsi ban. Hra se restartuje.');
-                setTimeout(() => location.reload(), 2000);
-            }
+        function banHrac(n) {
+            let db = JSON.parse(localStorage.getItem('ms_royale_db'));
+            db[n.toLowerCase()].banned = true;
+            localStorage.setItem('ms_royale_db', JSON.stringify(db));
+            renderAdmin();
         }
+        function manualBan() { const n = document.getElementById('ban-input').value.trim(); if(n) banHrac(n); }
     </script>
 </body>
 </html>
