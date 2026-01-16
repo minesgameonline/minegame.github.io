@@ -3,439 +3,456 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Cartoon Online</title>
+    <title>Minesweeper Cartoon Royale</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f0f7ff;
-            --primary: #4a90e2;
-            --secondary: #ffcc00;
-            --danger: #ff4d4d;
-            --success: #4cd137;
-            --dark: #2f3640;
-            --white: #ffffff;
-            --admin: #e67e22;
+            --bg: #e0f2f1;
+            --card: #ffffff;
+            --primary: #6c5ce7;
+            --secondary: #fbc531;
+            --accent: #ff7675;
+            --success: #00b894;
+            --text: #2d3436;
+            --admin-color: #e67e22;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Nunito', sans-serif;
             background-color: var(--bg);
-            color: var(--dark);
+            color: var(--text);
             margin: 0;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            overflow-x: hidden;
+            min-height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- UI CARTOON STYLE --- */
+        h1, h2, h3 { font-family: 'Fredoka One', cursive; color: var(--primary); margin-bottom: 10px; }
+
+        /* --- CARTOON UI ELEMENTS --- */
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            border: 4px solid #fff;
+            position: relative;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px solid #dfe6e9;
+            font-size: 1.1rem;
+            width: 80%;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: center;
+        }
+
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #3470b9;
-            transition: transform 0.1s, box-shadow 0.1s;
-            margin: 5px;
-            font-size: 1rem;
-        }
-
-        .btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #3470b9;
-        }
-
-        .btn-orange { background: var(--admin); box-shadow: 0 4px 0 #d35400; }
-        .btn-success { background: var(--success); box-shadow: 0 4px 0 #44bd32; }
-
-        .panel {
-            background: white;
+            padding: 15px 30px;
             border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            margin: 10px;
-            text-align: center;
+            font-size: 1.1rem;
+            font-family: 'Fredoka One', cursive;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #4834d4;
+            transition: all 0.1s;
+            margin: 8px;
+            display: inline-block;
         }
 
-        /* --- SCREEN MANAGEMENT --- */
-        .screen { display: none; width: 90%; max-width: 800px; animation: fadeIn 0.3s; }
-        .active { display: block; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #4834d4; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #4834d4; }
+        .btn-small { padding: 8px 15px; font-size: 0.9rem; box-shadow: 0 4px 0 #4834d4; }
+        .btn-shop { background: var(--secondary); box-shadow: 0 6px 0 #f1c40f; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* --- MINESWEEPER GRID --- */
+        /* --- GRID STYLE --- */
         #game-grid {
             display: grid;
-            gap: 5px;
+            gap: 6px;
             margin: 20px auto;
-            background: #bdc3c7;
+            background: #dfe6e9;
             padding: 10px;
-            border-radius: 10px;
-            user-select: none;
+            border-radius: 20px;
+            justify-content: center;
         }
 
         .cell {
-            width: 40px;
-            height: 40px;
-            background: #ecf0f1;
+            width: 35px;
+            height: 35px;
+            background: #b2bec3;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            border-radius: 5px;
+            font-weight: 900;
             cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: inset 0 -3px 0 #bdc3c7;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1);
+            transition: background 0.2s;
         }
 
-        .cell.revealed { background: #fff; box-shadow: none; }
-        .cell.mine { background: var(--danger); }
+        .cell.revealed { background: #fff; box-shadow: none; cursor: default; }
+        .cell.mine { background: var(--accent); }
         .cell.flag { background: var(--secondary); }
 
-        /* --- PLAYER INFO --- */
-        .player-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fff;
-            padding: 10px 20px;
-            border-radius: 50px;
-            margin: 10px 0;
-            border: 3px solid var(--primary);
-        }
-
-        .title-tag {
-            font-size: 0.8rem;
-            display: block;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        /* --- ADMIN MENU --- */
-        #admin-menu {
+        /* --- POPUP SYSTEM --- */
+        #popup-overlay {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--admin);
-            color: white;
-            z-index: 1000;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
             display: none;
-            border: 5px solid white;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
         }
 
-        /* --- SHOP & CUP --- */
-        .cup-banner {
-            background: linear-gradient(45deg, #e67e22, #f1c40f);
-            color: white;
+        .popup {
+            background: white;
+            padding: 40px;
+            border-radius: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 80%;
+            transform: scale(0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 8px solid var(--primary);
+        }
+
+        .popup.show { transform: scale(1); }
+        .popup-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
+
+        /* --- STATS PANEL --- */
+        .stats-bar {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            border: 2px solid #eee;
+        }
+
+        #admin-panel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--admin-color);
             padding: 15px;
-            border-radius: 15px;
-            margin: 10px 0;
-            border: 2px dashed white;
+            border-radius: 20px;
+            color: white;
+            z-index: 100;
         }
 
+        .screen { display: none; }
+        .active { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="screen-login" class="screen active panel">
-        <h1>🎮 MineOnline</h1>
-        <p>Zadej své jméno a vstup do světa min!</p>
-        <input type="text" id="username-input" placeholder="Tvé jméno..." style="padding: 10px; border-radius: 10px; border: 2px solid #ddd; width: 80%;">
-        <br><br>
-        <button class="btn" onclick="login()">Vstoupit do hry</button>
+    <div id="popup-overlay">
+        <div class="popup" id="main-popup">
+            <span class="popup-icon" id="popup-icon">🎉</span>
+            <h2 id="popup-title">Gratulujeme!</h2>
+            <p id="popup-text">Něco se stalo!</p>
+            <button class="btn" onclick="closePopup()">Super!</button>
+        </div>
     </div>
 
-    <div id="screen-menu" class="screen panel">
-        <div class="player-card">
-            <div>
-                <span id="display-name" style="font-size: 1.2rem; font-weight: bold;"></span>
-                <span id="display-title" class="title-tag">Nováček</span>
-            </div>
-            <div>
-                💰 <span id="display-money">0</span> | 🏆 ELO: <span id="display-elo">1000</span>
-            </div>
+    <div class="container">
+        <div id="screen-login" class="screen active">
+            <h1>🎮 MineRoyale</h1>
+            <p>Vítej! Zadej své jméno pro načtení postupu.</p>
+            <input type="text" id="username" placeholder="Tvé unikátní jméno">
+            <br>
+            <button class="btn" onclick="handleLogin()">Hrát!</button>
         </div>
 
-        <div class="cup-banner">
-            <h3>🟠 OG CUP PRÁVĚ PROBÍHÁ!</h3>
-            <p>Vyhraj 3 hry v řadě a získej titul "OG Player"!</p>
-        </div>
-
-        <button class="btn" onclick="startGame('easy')">Lehká (8x8)</button>
-        <button class="btn" onclick="startGame('medium')">Střední (12x12)</button>
-        <button class="btn" onclick="startGame('hard')">Těžká (16x16)</button>
-        <hr>
-        <button class="btn btn-orange" onclick="showScreen('screen-shop')">🛒 Obchod</button>
-        <button class="btn btn-orange" onclick="showScreen('screen-leaderboard')">🏅 Leaderboard</button>
-    </div>
-
-    <div id="screen-game" class="screen panel">
-        <div id="game-info">
-            Miny: <span id="mine-count">0</span> | Čas: <span id="timer">0</span>s
-        </div>
-        <div id="game-grid"></div>
-        <button class="btn" onclick="showScreen('screen-menu')">Zpět do menu</button>
-    </div>
-
-    <div id="screen-shop" class="screen panel">
-        <h2>🛒 Obchod</h2>
-        <div id="shop-items">
-            <div class="panel">
-                <h4>Titul: Mine Master</h4>
-                <p>Cena: 500 💰</p>
-                <button class="btn" onclick="buyTitle('Mine Master', 500)">Koupit</button>
+        <div id="screen-menu" class="screen">
+            <div id="player-info">
+                <h2 id="display-name">Jméno</h2>
+                <div class="stats-bar">
+                    <span>💰 <span id="display-money">0</span></span>
+                    <span>🏆 ELO <span id="display-elo">1000</span></span>
+                </div>
+                <p id="display-title" style="color: var(--primary); font-weight: bold;"></p>
             </div>
-            <div class="panel">
-                <h4>Titul: Pro Player</h4>
-                <p>Cena: 1000 💰</p>
-                <button class="btn" onclick="buyTitle('Pro Player', 1000)">Koupit</button>
+            
+            <div style="margin: 20px 0;">
+                <button class="btn btn-small" onclick="initGame(8, 10)">Lehká</button>
+                <button class="btn btn-small" onclick="initGame(12, 25)">Střední</button>
+                <button class="btn btn-small" onclick="initGame(15, 45)">Těžká</button>
             </div>
+            
+            <button class="btn btn-shop" onclick="switchScreen('screen-shop')">🛒 Obchod</button>
+            <button class="btn btn-shop" onclick="renderLeaderboard(); switchScreen('screen-leaderboard')">🏅 Leaderboard</button>
         </div>
-        <button class="btn" onclick="showScreen('screen-menu')">Zpět</button>
+
+        <div id="screen-game" class="screen">
+            <div class="stats-bar">
+                <span id="game-status">Hraješ...</span>
+                <span>⏱️ <span id="timer">0</span>s</span>
+            </div>
+            <div id="game-grid"></div>
+            <button class="btn btn-small" style="background:#b2bec3; box-shadow: 0 4px 0 #636e72;" onclick="switchScreen('screen-menu')">Zpět do menu</button>
+        </div>
+
+        <div id="screen-shop" class="screen">
+            <h2>🛒 Obchod s tituly</h2>
+            <div id="shop-list"></div>
+            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
+        </div>
+
+        <div id="screen-leaderboard" class="screen">
+            <h2>🏅 Síň slávy</h2>
+            <div id="leaderboard-content" style="text-align: left; max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
+        </div>
     </div>
 
-    <div id="screen-leaderboard" class="screen panel">
-        <h2>🏅 Globální Leaderboard</h2>
-        <table style="width: 100%;" id="leaderboard-table">
-            </table>
-        <br>
-        <button class="btn" onclick="showScreen('screen-menu')">Zpět</button>
-    </div>
-
-    <div id="admin-menu" class="panel">
-        <h2 style="color: white;">🛠 ADMIN PANEL</h2>
-        <button class="btn" onclick="adminWin()">Instant Win ✅</button>
-        <button class="btn" onclick="alert('Sleduješ hráče Hráč123...')">Spectate 👀</button>
-        <button class="btn" onclick="addMoneyAdmin()">Přidat 1000 💰</button>
-        <button class="btn" onclick="alert('Hráč byl zabanován!')">Ban Hráče 🔨</button>
-        <br><br>
-        <button class="btn" onclick="document.getElementById('admin-menu').style.display='none'">Zavřít (Esc)</button>
+    <div id="admin-panel">
+        <h3>🛠 Admin: <span id="admin-target"></span></h3>
+        <button class="btn btn-small" onclick="adminAction('win')">Instant Win</button>
+        <button class="btn btn-small" onclick="adminAction('money')">+1000 💰</button>
+        <button class="btn btn-small" style="background: #c0392b;" onclick="adminAction('ban')">BAN</button>
     </div>
 
     <script>
-        // --- DATA & STAV ---
-        let player = {
-            name: "",
-            money: 0,
-            title: "Hráč",
-            elo: 1000,
-            isAdmin: false,
-            isBanned: false
-        };
+        // --- DATA & POPUP SYSTEM ---
+        let currentUser = null;
+        const TITLES = [
+            { id: 1, name: "Mine Master", price: 200 },
+            { id: 2, name: "OG Legend", price: 1000 },
+            { id: 3, name: "Explosion Expert", price: 500 }
+        ];
 
-        let game = {
-            grid: [],
-            rows: 0,
-            cols: 0,
-            mines: 0,
-            revealed: 0,
-            active: false
-        };
-
-        // --- INICIALIZACE ---
-        window.onload = () => {
-            if(localStorage.getItem('minesweeper_player')) {
-                player = JSON.parse(localStorage.getItem('minesweeper_player'));
-                updateUI();
-            }
-        };
-
-        function save() {
-            localStorage.setItem('minesweeper_player', JSON.stringify(player));
+        function showPopup(icon, title, text) {
+            document.getElementById('popup-icon').innerText = icon;
+            document.getElementById('popup-title').innerText = title;
+            document.getElementById('popup-text').innerText = text;
+            const overlay = document.getElementById('popup-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => document.getElementById('main-popup').classList.add('show'), 10);
         }
 
-        function login() {
-            const name = document.getElementById('username-input').value;
-            if(!name) return alert("Zadej jméno!");
-            
-            player.name = name;
-            if(name === "HonzikAdmin") {
-                player.isAdmin = true;
-                alert("Vítej Admine! Menu otevřeš klávesou 'P'.");
+        function closePopup() {
+            document.getElementById('main-popup').classList.remove('show');
+            setTimeout(() => document.getElementById('popup-overlay').style.display = 'none', 300);
+        }
+
+        function getAllUsers() {
+            return JSON.parse(localStorage.getItem('minesweeper_users') || '{}');
+        }
+
+        function saveUser(userData) {
+            let users = getAllUsers();
+            users[userData.name.toLowerCase()] = userData;
+            localStorage.setItem('minesweeper_users', JSON.stringify(users));
+        }
+
+        function handleLogin() {
+            const name = document.getElementById('username').value.trim();
+            if (!name) return showPopup('❌', 'Chyba!', 'Musíš zadat své jméno!');
+
+            let users = getAllUsers();
+            let key = name.toLowerCase();
+
+            if (users[key]) {
+                currentUser = users[key];
+            } else {
+                currentUser = { name: name, money: 0, elo: 1000, title: "Nováček", isBanned: false };
             }
-            
+
+            if (currentUser.isBanned) {
+                showPopup('🔨', 'BAN!', 'Tvůj účet byl zablokován adminem.');
+                return;
+            }
+
             updateUI();
-            showScreen('screen-menu');
-            save();
+            switchScreen('screen-menu');
+            saveUser(currentUser);
+            showPopup('👋', 'Ahoj ' + currentUser.name, 'Vítej zpět ve hře!');
         }
 
         function updateUI() {
-            document.getElementById('display-name').innerText = player.name;
-            document.getElementById('display-title').innerText = player.title;
-            document.getElementById('display-money').innerText = player.money;
-            document.getElementById('display-elo').innerText = player.elo;
-            renderLeaderboard();
+            document.getElementById('display-name').innerText = currentUser.name;
+            document.getElementById('display-money').innerText = currentUser.money;
+            document.getElementById('display-elo').innerText = currentUser.elo;
+            document.getElementById('display-title').innerText = currentUser.title;
+            
+            if (currentUser.name === "HonzikAdmin") {
+                document.getElementById('admin-target').innerText = currentUser.name;
+                window.onkeydown = (e) => {
+                    if (e.key.toLowerCase() === 'p') {
+                        const p = document.getElementById('admin-panel');
+                        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+                    }
+                };
+            }
         }
 
-        function showScreen(id) {
+        function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            if (id === 'screen-shop') renderShop();
         }
 
-        // --- LOGIKA MINESWEEPER ---
-        function startGame(difficulty) {
-            const config = {
-                easy: { r: 8, c: 8, m: 10 },
-                medium: { r: 12, c: 12, m: 20 },
-                hard: { r: 16, c: 16, m: 40 }
-            };
-            const c = config[difficulty];
-            game.rows = c.r; game.cols = c.c; game.mines = c.m;
-            game.revealed = 0;
-            game.active = true;
-            
-            initGrid();
-            showScreen('screen-game');
-        }
+        // --- GAME LOGIC ---
+        let gridData = [];
+        let gameActive = false;
 
-        function initGrid() {
+        function initGame(size, mines) {
+            gameActive = true;
+            gridData = [];
             const gridEl = document.getElementById('game-grid');
-            gridEl.style.gridTemplateColumns = `repeat(${game.cols}, 40px)`;
+            gridEl.style.gridTemplateColumns = `repeat(${size}, 35px)`;
             gridEl.innerHTML = '';
-            game.grid = [];
-
-            // Vytvoření pole
-            for(let r=0; r<game.rows; r++) {
-                game.grid[r] = [];
-                for(let c=0; c<game.cols; c++) {
-                    const el = document.createElement('div');
-                    el.classList.add('cell');
-                    el.onclick = () => reveal(r, c);
-                    el.oncontextmenu = (e) => { e.preventDefault(); toggleFlag(r, c); };
-                    gridEl.appendChild(el);
-                    game.grid[r][c] = { mine: false, revealed: false, flagged: false, count: 0, el: el };
+            
+            for(let r=0; r<size; r++) {
+                gridData[r] = [];
+                for(let c=0; c<size; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.onclick = () => reveal(r, c);
+                    cell.oncontextmenu = (e) => { e.preventDefault(); flag(r, c); };
+                    gridEl.appendChild(cell);
+                    gridData[r][c] = { mine: false, revealed: false, flagged: false, count: 0, el: cell };
                 }
             }
 
-            // Rozmístění min
-            let placed = 0;
-            while(placed < game.mines) {
-                let rr = Math.floor(Math.random()*game.rows);
-                let rc = Math.floor(Math.random()*game.cols);
-                if(!game.grid[rr][rc].mine) {
-                    game.grid[rr][rc].mine = true;
-                    placed++;
-                }
+            let mCount = 0;
+            while(mCount < mines) {
+                let r = Math.floor(Math.random()*size);
+                let c = Math.floor(Math.random()*size);
+                if(!gridData[r][c].mine) { gridData[r][c].mine = true; mCount++; }
             }
-
-            // Výpočet sousedů
-            for(let r=0; r<game.rows; r++) {
-                for(let c=0; c<game.cols; c++) {
-                    if(game.grid[r][c].mine) continue;
+            
+            for(let r=0; r<size; r++) {
+                for(let c=0; c<size; c++) {
+                    if(gridData[r][c].mine) continue;
                     let count = 0;
                     for(let i=-1; i<=1; i++) {
-                        for(let j=-1; j<=1; j++) {
-                            if(game.grid[r+i] && game.grid[r+i][c+j] && game.grid[r+i][c+j].mine) count++;
-                        }
+                        for(let j=-1; j<=1; j++) { if(gridData[r+i]?.[c+j]?.mine) count++; }
                     }
-                    game.grid[r][c].count = count;
+                    gridData[r][c].count = count;
                 }
             }
-            document.getElementById('mine-count').innerText = game.mines;
+            switchScreen('screen-game');
         }
 
         function reveal(r, c) {
-            if(!game.active || game.grid[r][c].revealed || game.grid[r][c].flagged) return;
-            
-            const cell = game.grid[r][c];
+            if(!gameActive || gridData[r][c].revealed || gridData[r][c].flagged) return;
+            const cell = gridData[r][c];
             cell.revealed = true;
             cell.el.classList.add('revealed');
 
             if(cell.mine) {
-                gameOver(false);
+                cell.el.innerText = '💥';
+                endGame(false);
                 return;
             }
 
             if(cell.count > 0) {
                 cell.el.innerText = cell.count;
+                cell.el.style.color = ['','#4a90e2','#00b894','#ff7675','#6c5ce7','#e67e22'][cell.count] || 'black';
             } else {
-                // Rekurze pro prázdná políčka
                 for(let i=-1; i<=1; i++) {
-                    for(let j=-1; j<=1; j++) {
-                        if(game.grid[r+i] && game.grid[r+i][c+j]) reveal(r+i, c+j);
-                    }
+                    for(let j=-1; j<=1; j++) { if(gridData[r+i]?.[c+j]) reveal(r+i, c+j); }
                 }
             }
-
-            game.revealed++;
-            if(game.revealed === (game.rows * game.cols) - game.mines) gameOver(true);
+            checkWin();
         }
 
-        function toggleFlag(r, c) {
-            const cell = game.grid[r][c];
-            if(cell.revealed) return;
-            cell.flagged = !cell.flagged;
-            cell.el.innerText = cell.flagged ? '🚩' : '';
+        function flag(r, c) {
+            if(!gameActive || gridData[r][c].revealed) return;
+            gridData[r][c].flagged = !gridData[r][c].flagged;
+            gridData[r][c].el.innerText = gridData[r][c].flagged ? '🚩' : '';
         }
 
-        function gameOver(win) {
-            game.active = false;
+        function checkWin() {
+            const allClean = gridData.flat().every(c => c.mine || c.revealed);
+            if(allClean) endGame(true);
+        }
+
+        function endGame(win) {
+            gameActive = false;
             if(win) {
-                const reward = 50;
-                player.money += reward;
-                player.elo += 25;
-                alert(`Vítězství! Získal jsi ${reward} 💰 a 25 ELO.`);
+                currentUser.money += 100;
+                currentUser.elo += 30;
+                showPopup('🏆', 'Vítězství!', 'Vyhrál jsi OG Cup a získal 100 💰 a 30 ELO!');
             } else {
-                player.elo = Math.max(0, player.elo - 15);
-                alert("BUM! Prohrál jsi.");
+                currentUser.elo = Math.max(0, currentUser.elo - 20);
+                showPopup('🧨', 'Bum!', 'Mina tě dostala. Ztratil jsi 20 ELO.');
             }
+            saveUser(currentUser);
             updateUI();
-            save();
-            showScreen('screen-menu');
+            switchScreen('screen-menu');
         }
 
-        // --- SHOP ---
-        function buyTitle(name, price) {
-            if(player.money >= price) {
-                player.money -= price;
-                player.title = name;
-                alert(`Koupeno: ${name}`);
-                updateUI();
-                save();
-            } else {
-                alert("Nedostatek peněz!");
-            }
-        }
-
-        // --- SIMULOVANÝ LEADERBOARD ---
-        function renderLeaderboard() {
-            const table = document.getElementById('leaderboard-table');
-            const fakePlayers = [
-                {name: "MineMaster99", el: 2100, t: "Legend"},
-                {name: "Pepa_Z_Depa", el: 1850, t: "Pro Player"},
-                {name: player.name, el: player.elo, t: player.title},
-                {name: "Anicka_05", el: 950, t: "Nováček"}
-            ].sort((a,b) => b.el - a.el);
-
-            table.innerHTML = "<tr><th>Hráč</th><th>Titul</th><th>ELO</th></tr>";
-            fakePlayers.forEach(p => {
-                table.innerHTML += `<tr><td>${p.name}</td><td>${p.t}</td><td>${p.el}</td></tr>`;
+        // --- SHOP & LEADERBOARD ---
+        function renderShop() {
+            const list = document.getElementById('shop-list');
+            list.innerHTML = '';
+            TITLES.forEach(t => {
+                const owns = currentUser.title === t.name;
+                list.innerHTML += `
+                    <div class="stats-bar" style="justify-content: space-between; align-items: center;">
+                        <span>${t.name} (${t.price} 💰)</span>
+                        <button class="btn btn-small" ${owns ? 'disabled' : ''} onclick="buyTitle('${t.name}', ${t.price})">
+                            ${owns ? 'Vlastníš' : 'Koupit'}
+                        </button>
+                    </div>
+                `;
             });
         }
 
-        // --- ADMIN FUNKCE ---
-        window.onkeydown = (e) => {
-            if(e.key.toLowerCase() === 'p' && player.isAdmin) {
-                const menu = document.getElementById('admin-menu');
-                menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        function buyTitle(name, price) {
+            if(currentUser.money >= price) {
+                currentUser.money -= price;
+                currentUser.title = name;
+                saveUser(currentUser);
+                updateUI();
+                renderShop();
+                showPopup('🛍️', 'Nákup úspěšný!', `Nyní máš titul: ${name}`);
+            } else showPopup('❌', 'Chudý hráč!', 'Na tohle nemáš dost mincí.');
+        }
+
+        function renderLeaderboard() {
+            const users = Object.values(getAllUsers()).sort((a,b) => b.elo - a.elo);
+            const cont = document.getElementById('leaderboard-content');
+            cont.innerHTML = users.map((u, i) => `
+                <div class="stats-bar">
+                    <span>${i+1}. ${u.name}</span>
+                    <span style="color:var(--primary)">${u.elo} ELO</span>
+                </div>
+            `).join('');
+        }
+
+        function adminAction(type) {
+            if(type === 'win') endGame(true);
+            if(type === 'money') { 
+                currentUser.money += 1000; 
+                updateUI(); saveUser(currentUser); 
+                showPopup('💰', 'Admin Cheat', 'Přidal jsi si 1000 mincí.');
             }
-        };
-
-        function adminWin() {
-            if(game.active) gameOver(true);
-            document.getElementById('admin-menu').style.display = 'none';
+            if(type === 'ban') { 
+                currentUser.isBanned = true; 
+                saveUser(currentUser); 
+                showPopup('🔨', 'Zabanován!', 'Dostal jsi ban. Hra se restartuje.');
+                setTimeout(() => location.reload(), 2000);
+            }
         }
-
-        function addMoneyAdmin() {
-            player.money += 1000;
-            updateUI();
-            save();
-            alert("Peníze přidány!");
-        }
-
     </script>
 </body>
 </html>
