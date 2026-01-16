@@ -3,149 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Cartoon Royale 🌈</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap" rel="stylesheet">
+    <title>Minesweeper Royale Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #e0f2f1; --card: #ffffff; --primary: #6c5ce7; --secondary: #fbc531;
-            --accent: #ff7675; --success: #00b894; --text: #2d3436; --admin-color: #e67e22;
-            --cup-color: #ff4757;
+            --bg: #f0f3f7; --card: #ffffff; --primary: #6c5ce7; --text: #2d3436;
+            --admin-color: #e67e22; --cup-color: #ff4757;
         }
         
-        body.theme-ostrava { --bg: #2f3542; --card: #57606f; --text: #ffffff; --primary: #70a1ff; }
+        /* OSTRAVA THEME */
+        body.theme-ostrava { --bg: #1a1a2e; --card: #16213e; --text: #ffffff; --primary: #0f3460; }
+        body.theme-ostrava .stats-bar, body.theme-ostrava .cell.revealed { color: #2d3436; }
 
-        body { 
-            font-family: 'Nunito', sans-serif; background-color: var(--bg); color: var(--text); 
-            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; 
-            transition: all 0.5s ease; overflow-x: hidden;
-        }
+        body { font-family: 'Nunito', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; transition: 0.5s; }
         
         .container { 
             background: var(--card); padding: 25px; border-radius: 40px; 
-            box-shadow: 0 15px 0 rgba(0,0,0,0.1), 0 25px 50px rgba(0,0,0,0.15); 
-            text-align: center; width: 95%; max-width: 650px; border: 6px solid rgba(255,255,255,0.5);
-            position: relative; transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; 
+            width: 95%; max-width: 650px; border: 6px solid rgba(255,255,255,0.5);
+            position: relative;
         }
 
+        /* FACEIT RANK STYLE */
+        .rank-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; }
+        .rank-circle {
+            width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-family: 'Fredoka One'; font-size: 2rem; color: white; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2); border: 4px solid rgba(255,255,255,0.5);
+        }
+        .rank-1-3 { background: linear-gradient(135deg, #a5afb6, #4b5d67); }
+        .rank-4-7 { background: linear-gradient(135deg, #fbc531, #e67e22); }
+        .rank-8-9 { background: linear-gradient(135deg, #ff7f50, #ff4757); }
+        .rank-10 { background: linear-gradient(135deg, #ff0000, #4834d4); animation: glow 1.5s infinite alternate; }
+        @keyframes glow { from { box-shadow: 0 0 5px #f00; } to { box-shadow: 0 0 20px #4834d4; } }
+
+        /* CUP CARDS */
+        .cup-card {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe); border-radius: 25px; 
+            padding: 20px; margin: 15px 0; color: white; text-align: left;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1); position: relative;
+        }
+        .cup-card h3 { font-family: 'Fredoka One'; margin: 0; }
+        .cup-card .eula { font-size: 0.7rem; opacity: 0.8; margin-top: 10px; }
+
+        /* BUTTONS */
         .btn { 
             background: var(--primary); color: white; border: none; padding: 12px 20px; 
-            border-radius: 20px; font-size: 1rem; font-family: 'Fredoka One', cursive; 
-            cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.2); transition: all 0.1s; 
-            margin: 5px; display: inline-block; text-decoration: none;
+            border-radius: 20px; font-family: 'Fredoka One'; cursor: pointer; 
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2); margin: 5px; transition: 0.1s;
         }
-        .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
-        .btn-orange { background: var(--admin-color); }
-        .btn-cup { background: var(--cup-color); width: 85%; font-size: 1.2rem; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+        .btn-play { background: #00b894; width: 100%; margin-top: 10px; }
 
-        .stats-bar { 
-            background: rgba(0,0,0,0.05); padding: 10px; border-radius: 20px; 
-            margin-bottom: 15px; display: flex; justify-content: space-around; 
-            font-weight: bold; border: 2px dashed rgba(0,0,0,0.1); 
+        /* ADMIN PANEL */
+        #admin-panel { 
+            display: none; position: fixed; top: 10px; left: 10px; right: 10px; 
+            background: var(--admin-color); padding: 15px; border-radius: 25px; 
+            color: white; z-index: 9999; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        /* GRID FIX */
-        #game-container { overflow: auto; max-width: 100%; padding: 10px; border-radius: 20px; background: rgba(0,0,0,0.05); }
-        #game-grid { display: grid; gap: 4px; margin: 0 auto; transition: transform 0.3s ease; }
-        
+        /* GRID */
+        #game-grid { display: grid; gap: 4px; margin: 15px auto; justify-content: center; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 15px; }
         .cell { 
-            width: 32px; height: 32px; background: #ced4da; border-radius: 8px; 
+            width: 32px; height: 32px; background: #dfe6e9; border-radius: 6px; 
             display: flex; align-items: center; justify-content: center; font-weight: 900; 
-            cursor: pointer; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); font-size: 1rem;
-            user-select: none;
+            cursor: pointer; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
         }
         .cell.revealed { background: white; box-shadow: none; }
-        .cell.mine { background: var(--accent); }
 
         /* POPUP */
         #popup-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); display: none; justify-content: center; 
-            align-items: center; z-index: 5000; backdrop-filter: blur(8px); 
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; 
+            align-items: center; z-index: 10000; backdrop-filter: blur(8px); 
         }
-        .popup { 
-            background: white; padding: 30px; border-radius: 35px; text-align: center; 
-            max-width: 350px; width: 85%; border: 8px solid var(--primary); color: #2d3436;
-            transform: scale(0.5); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .popup.show { transform: scale(1); }
-
-        #admin-panel { 
-            display: none; position: fixed; top: 10px; left: 10px; right: 10px; 
-            background: var(--admin-color); padding: 15px; border-radius: 25px; 
-            color: white; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-        }
+        .popup { background: white; padding: 30px; border-radius: 40px; text-align: center; max-width: 350px; border: 8px solid var(--primary); color: #2d3436; }
 
         .screen { display: none; }
         .active { display: block; }
-
-        input { padding: 10px; border-radius: 15px; border: 3px solid #ddd; margin: 10px; text-align: center; font-family: 'Nunito'; }
+        .stats-bar { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 15px; display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body id="game-body">
 
-    <div id="popup-overlay">
-        <div class="popup" id="main-popup">
-            <div id="popup-icon" style="font-size: 3rem;"></div>
-            <h2 id="popup-title"></h2>
-            <p id="popup-text"></p>
-            <div id="popup-buttons">
-                <button class="btn" onclick="closePopup()">Rozumím!</button>
-            </div>
-        </div>
-    </div>
-
     <div id="admin-panel">
         <h3 style="margin:5px">🛠 ADMIN (Honzik)</h3>
-        <button class="btn btn-unranked" onclick="adminWin()">Instant Win ✅</button>
-        <button class="btn btn-unranked" onclick="adminAddMoney()">+1000 💰</button>
-        <div id="admin-list" style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 5px 0;"></div>
+        <button class="btn" style="background:#2ecc71" onclick="adminWin()">Instant Win ✅</button>
+        <button class="btn" style="background:#f1c40f" onclick="adminAddMoney()">+1000 💰</button>
+        <div id="admin-list" style="max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 10px 0; border-radius: 10px;"></div>
+        <input type="text" id="ban-input" placeholder="Jméno k banu" style="padding:5px; border-radius:10px; border:none">
+        <button class="btn" style="background:#e74c3c" onclick="manualBan()">BAN</button>
         <button class="btn" style="background:#333" onclick="document.getElementById('admin-panel').style.display='none'">Zavřít [P]</button>
+    </div>
+
+    <div id="popup-overlay">
+        <div class="popup" id="main-popup">
+            <div id="popup-icon" style="font-size: 4rem;"></div>
+            <h2 id="popup-title" style="font-family:'Fredoka One'"></h2>
+            <p id="popup-text"></p>
+            <div id="popup-btns">
+                <button class="btn" onclick="closePopup()">ROZUMÍM!</button>
+            </div>
+        </div>
     </div>
 
     <div class="container">
         <div id="screen-login" class="screen active">
-            <h1>🌈 MineRoyale</h1>
-            <input type="text" id="username" placeholder="Tvé jméno...">
-            <br><button class="btn" onclick="handleLogin()">Hrát!</button>
+            <h1 style="font-family:'Fredoka One'; font-size: 2.5rem;">🎮 MineRoyale</h1>
+            <input type="text" id="username" placeholder="Tvé jméno..." style="padding:15px; border-radius:20px; border:3px solid #ddd; width:75%">
+            <br><button class="btn" style="margin-top:15px; font-size:1.2rem" onclick="handleLogin()">VSTOUPIT DO ARENY</button>
         </div>
 
         <div id="screen-menu" class="screen">
-            <div class="stats-bar">
-                <div style="color:#f1c40f">💰 <span id="m-money">0</span></div>
-                <div style="color:#6c5ce7">🏆 ELO <span id="m-elo">0</span></div>
+            <div class="rank-container">
+                <div id="rank-circle" class="rank-circle">1</div>
+                <div style="font-weight: 900; margin-top:5px;">ELO: <span id="m-elo">1000</span></div>
             </div>
-            <h2 id="m-name" style="margin:0;">Jméno</h2>
+            <h2 id="m-name" style="margin:0">Hráč</h2>
             <p id="m-title" style="color:var(--primary); font-weight:bold;">Nováček</p>
-
-            <button class="btn" style="background:#4834d4; width:45%" onclick="matchmaking()">⚔️ RANKED</button>
-            <button class="btn" style="background:#20bf6b; width:45%" onclick="startMode('unranked')">🍃 FREE</button>
-            <button class="btn btn-cup" onclick="switchScreen('screen-championship')">🏆 CHAMPIONSHIP</button>
-            <br>
-            <button class="btn" onclick="switchScreen('screen-shop')">🛒 SHOP</button>
-            <button class="btn" onclick="switchScreen('screen-inv')">🎒 INV</button>
-            <button class="btn" onclick="renderLead(); switchScreen('screen-lead')">🏅 LEAD</button>
+            <div class="stats-bar">💰 Peníze: <span id="m-money">0</span></div>
+            
+            <button class="btn" style="width:45%; background:#4834d4" onclick="matchmaking()">⚔️ RANKED</button>
+            <button class="btn" style="width:45%; background:#20bf6b" onclick="startMode('unranked')">🍃 FREE</button>
+            <button class="btn" style="width:95%; background:#ff4757" onclick="switchScreen('screen-championship')">🏆 TOURNAMENTS</button>
+            <div style="margin-top:10px">
+                <button class="btn" onclick="switchScreen('screen-shop')">🛒 SHOP</button>
+                <button class="btn" onclick="switchScreen('screen-inv')">🎒 INV</button>
+                <button class="btn" onclick="renderLead(); switchScreen('screen-lead')">🏅 LEAD</button>
+            </div>
         </div>
 
         <div id="screen-championship" class="screen">
-            <h2>🏆 Championship</h2>
-            <div class="stats-bar">OG Cup Pokusy: <span id="c-attempts">0</span>/5</div>
-            <button class="btn btn-cup" onclick="startChamp('og')">START OG CUP</button>
-            <button id="ostrava-btn" class="btn btn-cup" style="background:#5352ed; display:none;" onclick="startChamp('ostrava')">🏙️ OSTRAVA CUP</button>
-            <div style="margin-top:20px; opacity:0.7; font-size:0.8rem">
-                Didn't find the cup you expected to be here?<br>
-                Type CUPid here: <input type="text" id="cupid-input" oninput="checkCupid()" style="width:100px; padding:5px">
+            <h2 style="font-family:'Fredoka One'">Tournament Hub</h2>
+            <div class="cup-card" id="card-og">
+                <h3>🏆 OG CHAMPION CUP</h3>
+                <p>Odměna: 500 💰 + Titul "OG CHAMPION"</p>
+                <button id="btn-og" class="btn btn-play" onclick="startChamp('og')">Souhlasím s EULA & Hrát</button>
+                <div id="won-og" style="display:none; color:#fbc531; font-weight:bold; font-size:1.2rem">✅ VYHRÁNO!!!</div>
+                <div class="eula">Kliknutím potvrzujete férovou hru.</div>
             </div>
-            <button class="btn" onclick="switchScreen('screen-menu')">Zpět</button>
+
+            <div class="cup-card" id="card-ostrava" style="display:none; background: linear-gradient(135deg, #2f3542, #57606f);">
+                <h3>🏙️ OSTRAVA CITY CUP</h3>
+                <p>Odměna: Theme "Ostrava" + Titul "Personally met the owner"</p>
+                <button id="btn-ostrava" class="btn btn-play" onclick="startChamp('ostrava')">Souhlasím s EULA & Hrát</button>
+                <div id="won-ostrava" style="display:none; color:#00b894; font-weight:bold; font-size:1.2rem">✅ VYHRÁNO!!!</div>
+            </div>
+
+            <p style="font-size:0.8rem; margin-top:20px">Didn't find the cup you expected? Type CUPid here:</p>
+            <input type="text" id="cupid-input" oninput="checkCupid()" placeholder="Kód..." style="padding:5px; border-radius:10px; border:1px solid #ccc; width:120px">
+            <br><button class="btn" style="margin-top:10px" onclick="switchScreen('screen-menu')">Zpět</button>
         </div>
 
         <div id="screen-game" class="screen">
             <div class="stats-bar">
-                <span id="g-info">Mód</span>
-                <span>⏱️ <span id="timer">0</span>s</span>
+                <span id="g-info">MÓD</span> | ⏱️ <span id="timer">0</span>s
             </div>
-            <div id="game-container">
-                <div id="game-grid"></div>
-            </div>
+            <div id="game-grid"></div>
             <button class="btn" style="background:#95a5a6" onclick="switchScreen('screen-menu')">Vzdát se</button>
         </div>
 
@@ -156,42 +170,28 @@
 
     <script>
         let user = null;
-        let game = { active: false, mode: '', grid: [], size: 0 };
-        let timerInterval;
-        let seconds = 0;
+        let game = { active: false, mode: '', grid: [] };
+        let timer;
 
-        function showPopup(i, t, tx, btnHtml = null) {
+        function showPopup(i, t, tx, btns = null) {
             document.getElementById('popup-icon').innerText = i;
             document.getElementById('popup-title').innerText = t;
             document.getElementById('popup-text').innerText = tx;
-            const btnCont = document.getElementById('popup-buttons');
-            btnCont.innerHTML = btnHtml || `<button class="btn" onclick="closePopup()">Rozumím!</button>`;
+            document.getElementById('popup-btns').innerHTML = btns || `<button class="btn" onclick="closePopup()">ROZUMÍM!</button>`;
             document.getElementById('popup-overlay').style.display = 'flex';
             setTimeout(() => document.getElementById('main-popup').classList.add('show'), 10);
         }
-
         function closePopup() { 
             document.getElementById('main-popup').classList.remove('show');
             setTimeout(() => document.getElementById('popup-overlay').style.display = 'none', 300);
         }
 
-        function matchmaking() {
-            showPopup('🔍', 'Hledání...', 'Hledám soupeře pro Ranked hru...');
-            setTimeout(() => {
-                showPopup('🎮', 'Hra nalezena!', 'Našla se ranked hra! Chceš ji přijmout?', 
-                `<button class="btn" onclick="closePopup(); startMode('ranked')">Přijmout ✅</button>`);
-            }, 1500);
-        }
-
         function handleLogin() {
             const name = document.getElementById('username').value.trim();
             if(!name) return;
-            let db = JSON.parse(localStorage.getItem('ms_final_db') || '{}');
-            user = db[name.toLowerCase()] || { 
-                name, money: 200, elo: 1000, title: "Nováček", 
-                inv: [], themes: [], attempts: 5, banned: false, currentTheme: 'default'
-            };
-            if(user.banned) return showPopup('🔨', 'BAN', 'Máš ban!');
+            let db = JSON.parse(localStorage.getItem('ms_ultimate_db') || '{}');
+            user = db[name.toLowerCase()] || { name, money: 100, elo: 1000, title: "Nováček", inv: [], themes: [], currentTheme: 'default', wonCups: [], banned: false };
+            if(user.banned) return showPopup('🔨', 'BAN', 'Jsi zabanován!');
             applyTheme(user.currentTheme);
             save(); updateUI(); switchScreen('screen-menu');
             if(name === "HonzikAdmin") {
@@ -203,58 +203,55 @@
         }
 
         function save() {
-            let db = JSON.parse(localStorage.getItem('ms_final_db') || '{}');
+            let db = JSON.parse(localStorage.getItem('ms_ultimate_db') || '{}');
             db[user.name.toLowerCase()] = user;
-            localStorage.setItem('ms_final_db', JSON.stringify(db));
+            localStorage.setItem('ms_ultimate_db', JSON.stringify(db));
         }
 
         function updateUI() {
-            document.getElementById('m-name').innerText = user.name;
             document.getElementById('m-money').innerText = user.money;
             document.getElementById('m-elo').innerText = user.elo;
+            document.getElementById('m-name').innerText = user.name;
             document.getElementById('m-title').innerText = user.title;
-            document.getElementById('c-attempts').innerText = user.attempts;
+            
+            // RANK LOGIC (1-10)
+            let rank = Math.min(10, Math.max(1, Math.floor((user.elo - 1000) / 150) + 1));
+            const circle = document.getElementById('rank-circle');
+            circle.innerText = rank; circle.className = 'rank-circle';
+            if(rank <= 3) circle.classList.add('rank-1-3');
+            else if(rank <= 7) circle.classList.add('rank-4-7');
+            else if(rank <= 9) circle.classList.add('rank-8-9');
+            else circle.classList.add('rank-10');
+
+            if(user.wonCups.includes('og')) { document.getElementById('btn-og').style.display='none'; document.getElementById('won-og').style.display='block'; }
+            if(user.wonCups.includes('ostrava')) { document.getElementById('btn-ostrava').style.display='none'; document.getElementById('won-ostrava').style.display='block'; }
         }
 
-        function switchScreen(s) {
-            document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
-            document.getElementById(s).classList.add('active');
-            if(s === 'screen-inv') renderInv();
-            if(s === 'screen-shop') renderShop();
-            clearInterval(timerInterval);
+        function matchmaking() {
+            showPopup('🔍', 'Hledání...', 'Hledám soupeře pro Ranked hru...');
+            setTimeout(() => {
+                showPopup('🎮', 'Hra nalezena!', 'Našla se ranked hra! Chceš ji přijmout?', 
+                `<button class="btn" onclick="closePopup(); startMode('ranked')">Přijmout ✅</button>`);
+            }, 1200);
         }
 
         function checkCupid() {
             if(document.getElementById('cupid-input').value === "ostravaCup") {
-                document.getElementById('ostrava-btn').style.display = 'inline-block';
-                showPopup('🏙️', 'Tajný Kód!', 'Aktivoval jsi Ostrava Cup! Jak o něm víš?');
+                document.getElementById('card-ostrava').style.display = 'block';
+                showPopup('🏙️', 'BUM!', 'Aktivoval jsi tajný Ostrava Cup!');
                 document.getElementById('cupid-input').value = "";
             }
         }
 
         function startMode(m) { game.mode = m; initGame(10, 15); }
-        function startChamp(type) {
-            if(type === 'og') {
-                if(user.attempts <= 0) return showPopup('❌', 'Pokusy', 'Došly ti pokusy!');
-                user.attempts--; save(); updateUI();
-                game.mode = 'og_cup'; initGame(15, 40);
-            } else {
-                game.mode = 'ostrava_cup'; initGame(18, 65);
-            }
-        }
+        function startChamp(t) { game.mode = t === 'og' ? 'og_cup' : 'ostrava_cup'; initGame(t === 'og' ? 15 : 18, t === 'og' ? 45 : 70); }
 
         function initGame(size, mines) {
-            game.size = size;
             const g = document.getElementById('game-grid'); g.innerHTML = '';
             g.style.gridTemplateColumns = `repeat(${size}, 32px)`;
-            
-            // GUI fix pro velká pole (zoom)
-            if(size > 15) g.style.transform = 'scale(0.85)';
-            else g.style.transform = 'scale(1)';
-
+            if(size > 15) g.style.transform = 'scale(0.85)'; else g.style.transform = 'scale(1)';
             game.grid = []; game.active = true;
             document.getElementById('g-info').innerText = game.mode.toUpperCase();
-            
             for(let r=0; r<size; r++) {
                 game.grid[r] = [];
                 for(let c=0; c<size; c++) {
@@ -265,13 +262,12 @@
                     game.grid[r][c] = { mine: false, rev: false, fl: false, el: el };
                 }
             }
-            let mc = 0;
-            while(mc < mines) {
+            let m = 0; while(m < mines) {
                 let r = Math.floor(Math.random()*size), c = Math.floor(Math.random()*size);
-                if(!game.grid[r][c].mine) { game.grid[r][c].mine = true; mc++; }
+                if(!game.grid[r][c].mine) { game.grid[r][c].mine = true; m++; }
             }
-            seconds = 0; document.getElementById('timer').innerText = 0;
-            timerInterval = setInterval(() => { seconds++; document.getElementById('timer').innerText = seconds; }, 1000);
+            let sec = 0; clearInterval(timer);
+            timer = setInterval(() => { sec++; document.getElementById('timer').innerText = sec; }, 1000);
             switchScreen('screen-game');
         }
 
@@ -279,80 +275,60 @@
             if(!game.active || game.grid[r][c].rev || game.grid[r][c].fl) return;
             let tile = game.grid[r][c]; tile.rev = true; tile.el.classList.add('revealed');
             if(tile.mine) return endGame(false);
-            
-            let count = 0;
-            for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]?.mine) count++;
-            if(count > 0) {
-                tile.el.innerText = count;
-                tile.el.style.color = ['','#0984e3','#00b894','#d63031','#6c5ce7','#e67e22'][count] || '#000';
+            let cnt = 0;
+            for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]?.mine) cnt++;
+            if(cnt > 0) {
+                tile.el.innerText = cnt;
+                const colors = {1:"#0984e3", 2:"#27ae60", 3:"#e74c3c", 4:"#8e44ad", 5:"#d35400"};
+                tile.el.style.color = colors[cnt] || "#000";
             } else {
-                for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]) reveal(r+i, c+j);
+                for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(game.grid[r+i]?.[c+j]) reveal(r+i,c+j);
             }
             if(game.grid.flat().filter(x => !x.mine && !x.rev).length === 0) endGame(true);
         }
 
-        function flag(r,c) {
-            if(!game.active || game.grid[r][c].rev) return;
-            game.grid[r][c].fl = !game.grid[r][c].fl;
-            game.grid[r][c].el.innerText = game.grid[r][c].fl ? '🚩' : '';
-        }
+        function flag(r,c) { if(!game.active || game.grid[r][c].rev) return; game.grid[r][c].fl = !game.grid[r][c].fl; game.grid[r][c].el.innerText = game.grid[r][c].fl ? '🚩' : ''; }
 
         function endGame(win) {
-            game.active = false; clearInterval(timerInterval);
+            game.active = false; clearInterval(timer);
             if(win) {
-                user.money += 150;
-                if(game.mode === 'ranked') user.elo += 40;
-                if(game.mode === 'ostrava_cup') {
-                    if(!user.inv.includes('Personally met the owner')) user.inv.push('Personally met the owner');
-                    if(!user.themes.includes('ostrava')) user.themes.push('ostrava');
-                    showPopup('👑', 'LEGENDA!', 'Vyhrál jsi Ostrava Cup! Máš nový titul a Theme!');
-                } else showPopup('🎉', 'Výhra!', 'Skvělá práce!');
+                if(game.mode === 'ranked') user.elo += 45;
+                if(game.mode === 'og_cup') { user.money += 500; user.inv.push('OG CHAMPION'); user.wonCups.push('og'); }
+                if(game.mode === 'ostrava_cup') { user.themes.push('ostrava'); user.inv.push('Personally met the owner'); user.wonCups.push('ostrava'); }
+                showPopup('🏆', 'VÍTĚZSTVÍ!', 'WOW!!! Vyhrál jsi!');
             } else {
-                if(game.mode === 'ranked') user.elo = Math.max(0, user.elo - 25);
-                showPopup('💥', 'BUM!', 'Příště to vyjde.');
+                if(game.mode === 'ranked') user.elo = Math.max(0, user.elo - 30);
+                showPopup('💥', 'BUM!', 'Mina tě dostala.');
             }
             save(); updateUI(); switchScreen('screen-menu');
         }
 
-        // ADMIN FUNKCE
+        // ADMIN TOOLS
         function adminWin() { if(game.active) endGame(true); }
-        function adminAddMoney() { user.money += 1000; save(); updateUI(); showPopup('💰', 'Admin', 'Přidáno 1000 mincí.'); }
-        
+        function adminAddMoney() { user.money += 1000; save(); updateUI(); }
         function renderAdmin() {
-            let db = Object.values(JSON.parse(localStorage.getItem('ms_final_db') || '{}'));
-            document.getElementById('admin-list').innerHTML = db.map(p => `
-                <div style="padding:5px; border-bottom:1px solid #aaa; display:flex; justify-content:space-between">
-                    <span>${p.name}</span> <button onclick="ban('${p.name}')">BAN</button>
-                </div>
-            `).join('');
+            let db = Object.values(JSON.parse(localStorage.getItem('ms_ultimate_db') || '{}'));
+            document.getElementById('admin-list').innerHTML = db.map(p => `<div style="padding:5px; border-bottom:1px solid #555">${p.name} <button onclick="ban('${p.name}')">BAN</button></div>`).join('');
         }
-        function ban(n) {
-            let db = JSON.parse(localStorage.getItem('ms_final_db'));
-            db[n.toLowerCase()].banned = true;
-            localStorage.setItem('ms_final_db', JSON.stringify(db));
-            renderAdmin();
+        function ban(n) { 
+            let db = JSON.parse(localStorage.getItem('ms_ultimate_db')); 
+            db[n.toLowerCase()].banned = true; 
+            localStorage.setItem('ms_ultimate_db', JSON.stringify(db)); renderAdmin(); 
         }
+        function manualBan() { const n = document.getElementById('ban-input').value; if(n) ban(n); }
 
         function renderInv() {
-            const list = document.getElementById('inv-list');
-            list.innerHTML = '<h4>Tituly:</h4>';
-            user.inv.forEach(i => { list.innerHTML += `<div class="stats-bar">${i} <button class="btn" style="padding:5px" onclick="user.title='${i}';save();updateUI()">Nasadit</button></div>`; });
-            list.innerHTML += '<h4>Themes:</h4>';
-            user.themes.forEach(t => { list.innerHTML += `<div class="stats-bar">${t} <button class="btn" style="padding:5px" onclick="applyTheme('${t}')">Aktivovat</button></div>`; });
+            const l = document.getElementById('inv-list'); l.innerHTML = '';
+            user.inv.forEach(t => { l.innerHTML += `<div class="stats-bar">${t} <button class="btn" onclick="user.title='${t}';save();updateUI()">Dát</button></div>`; });
+            user.themes.forEach(th => { l.innerHTML += `<div class="stats-bar">Theme: ${th} <button class="btn" onclick="applyTheme('${th}')">Dát</button></div>`; });
+            l.innerHTML += `<div class="stats-bar">Default <button class="btn" onclick="applyTheme('default')">Dát</button></div>`;
         }
-        function applyTheme(t) { document.getElementById('game-body').className = (t === 'default') ? '' : 'theme-'+t; user.currentTheme = t; save(); }
-
-        function renderShop() {
-            const s = document.getElementById('shop-list'); s.innerHTML = '';
-            [{n:"God Mode Title", p:1000}].forEach(t => {
-                s.innerHTML += `<div class="stats-bar">${t.n} (${t.p}💰) <button class="btn" style="padding:5px" onclick="buy('${t.n}',${t.p})">Koupit</button></div>`;
-            });
-        }
-        function buy(n,p) { if(user.money>=p) { user.money-=p; user.inv.push(n); save(); updateUI(); renderShop(); } }
+        function applyTheme(t) { document.getElementById('game-body').className = (t==='default'?'':'theme-'+t); user.currentTheme=t; save(); }
         function renderLead() {
-            let db = Object.values(JSON.parse(localStorage.getItem('ms_final_db') || '{}')).sort((a,b)=>b.elo-a.elo);
-            document.getElementById('lead-list').innerHTML = db.map((u,i)=>`<div class="stats-bar">${i+1}. ${u.name} (${u.elo})</div>`).join('');
+            let db = Object.values(JSON.parse(localStorage.getItem('ms_ultimate_db') || '{}')).sort((a,b)=>b.elo-a.elo);
+            document.getElementById('lead-list').innerHTML = db.map((u,i)=>`<div class="stats-bar">${i+1}. ${u.name} (ELO: ${u.elo})</div>`).join('');
         }
+        function switchScreen(s) { document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); document.getElementById(s).classList.add('active'); if(s==='screen-inv') renderInv(); }
     </script>
 </body>
 </html>
